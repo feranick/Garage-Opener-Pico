@@ -1,0 +1,11 @@
+CIRCUITPY_WIFI_SSID = "ssid_name"
+CIRCUITPY_WIFI_PASSWORD = "password"
+CIRCUITPY_WEB_INSTANCE_NAME = "GarageOpener"
+CIRCUITPY_WEB_API_PASSWORD="passw0rd"
+CIRCUITPY_WEB_API_PORT=205
+triggerDistance = 20
+sensorURL = "192.168.1.206"
+station = "kbos"
+zipcode = "02139"
+country = "US"
+ow_api_key = "YOUR_API_KEY"
