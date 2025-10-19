@@ -1,9 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Sensor only
-# * v2025.10.18.1
+# * v2025.10.19.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
+
+version = "2025.10.18.1"
 
 import wifi
 import time
@@ -21,15 +23,13 @@ import json
 #import adafruit_requests
 #import adafruit_ntp
 
-import adafruit_hcsr04
-from adafruit_bme280 import basic as adafruit_bme280
 from adafruit_httpserver import Server, MIMETypes, Response
 
-version = "2025.10.18.1"
-
+import adafruit_hcsr04
 SONAR_TRIGGER = board.GP15
 SONAR_ECHO = board.GP13
 
+from adafruit_bme280 import basic as adafruit_bme280
 BME280_CLK = board.GP18
 BME280_MOSI = board.GP19
 BME280_MISO = board.GP16
@@ -149,9 +149,9 @@ class GarageServer:
             data_dict = {
                 "state": state[0],
                 "button_color": state[1],
-                "temperature": envData[0],
-                "RH": envData[1],
-                "pressure": envData[2],
+                "temperature": envData['temperature'],
+                "RH": envData['RH'],
+                "pressure": envData['pressure'],
             }
             json_content = json.dumps(data_dict)
 
@@ -223,7 +223,7 @@ class GarageServer:
 class Sensors:
     def __init__(self, conf):
         self.sonar = None
-        #self.mcp = None
+        self.envSensor = None
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
@@ -232,31 +232,39 @@ class Sensors:
         self.trigDist = conf.triggerDistance
 
         try:
-            spi = busio.SPI(BME280_CLK, MISO=BME280_MISO, MOSI=BME280_MOSI)
-            bme_cs = digitalio.DigitalInOut(BME280_OUT)
-            self.envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
+            self.envSensorName = self.initBME680()
             self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
-            print("Temperature sensor (BME280) found and initialized.")
+            print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
         except Exception as e:
             self.envSensor = None
             self.avDeltaT = 0
-            print(f"Failed to initialize BME280:{e}")
+            print(f"Failed to initialize {self.envSensorName}: {e}")
 
         self.numTimes = 1
+        
+    def initBME280(self):
+        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
+        bme_cs = digitalio.DigitalInOut(BME_OUT)
+        self.envSensor = adafruit_bme680.Adafruit_BME280_SPI(spi, bme_cs)
+        return "BME280"
+        
+    def getEnvDataBME280(self):
+        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity), 'gas': '--'}
 
     def getEnvData(self):
         t_cpu = microcontroller.cpu.temperature
         if self.envSensor is None:
-            print("BME280 not initialized. Using CPU temp with estimated offset.")
+            print(f"{self.envSensorName} not initialized. Using CPU temp with estimated offset.")
 
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return [f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", "--","--"]
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", 'RH': '--','pressure': '--'}
             else:
-                return [f"{round(t_cpu, 1)} \u00b0C (CPU raw)", "--","--"]
+                return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--','pressure': '--'}
         try:
-            t_envSensor = self.envSensor.temperature
-            rh_envSensor = self.envSensor.relative_humidity
-            p_envSensor = self.envSensor.pressure
+            envSensor = self.getEnvDataBME280()
+            t_envSensor = float(envSensor['temperature']) + self.temp_offset
+            rh_envSensor = envSensor['RH']
+            p_envSensor = envSensor['pressure']
             delta_t = t_cpu - t_envSensor
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
@@ -264,11 +272,11 @@ class Sensors:
             self.numTimes += 1
             print("Av. CPU/MCP T diff: "+str(self.avDeltaT)+" "+str(self.numTimes))
             time.sleep(1)
-            return [f"{str(round(t_envSensor,1))} \u00b0C", f"{str(round(rh_envSensor,0))} %", str(p_envSensor)]
+            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH':  f"{int(float(rh_envSensor))} %", 'pressure': str(p_envSensor)}
         except:
-            print("BME280 not available. Av CPU/MCP T diff: "+str(self.avDeltaT))
+            print("{self.envSensorName} not available. Av CPU/MCP T diff: "+str(self.avDeltaT))
             time.sleep(1)
-            return [f"{str(round(t_cpu-self.avDeltaT, 1))} \u00b0C (CPU)","--","--"]
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)",'RH': "--", 'pressure': "--"]
 
     def checkStatusSonar(self):
         if not self.sonar:
