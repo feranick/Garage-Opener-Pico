@@ -36,12 +36,12 @@ import adafruit_mcp9808
 MCP_I2C_SCL = board.GP17
 MCP_I2C_SDA = board.GP16
 
-# BME680 ONLY
+# BME680 NS BME280 ONLY
 #import adafruit_bme680
-#BME680_CLK = board.GP18
-#BME680_MOSI = board.GP19
-#BME680_MISO = board.GP16
-#BME680_OUT = board.GP17
+#BME_CLK = board.GP18
+#BME_MOSI = board.GP19
+#BME_MISO = board.GP16
+#BME_OUT = board.GP17
 
 ############################
 # Initial WiFi/Safe Mode Check
@@ -348,11 +348,20 @@ class Sensors:
         return {'temperature': str(self.envSensor.temperature), 'RH': '--'}
             
     def initBME680(self):
-        spi = busio.SPI(BME680_CLK, MISO=BME680_MISO, MOSI=BME680_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME680_OUT)
+        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
+        bme_cs = digitalio.DigitalInOut(BME_OUT)
         self.envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
         return "BME680"
         
+    def initBME280(self):
+        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
+        bme_cs = digitalio.DigitalInOut(BME_OUT)
+        self.envSensor = adafruit_bme680.Adafruit_BME280_SPI(spi, bme_cs)
+        return "BME280"
+        
+    def getEnvDataBME280(self):
+        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity)}
+    
     def getEnvDataBME680(self):
         return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity)}
 
@@ -367,6 +376,7 @@ class Sensors:
         try:
             envSensor = self.getEnvDataMCP9808()
             #envSensor = self.getEnvDataBME680()
+            #envSensor = self.getEnvDataBME280()
             t_envSensor = float(envSensor['temperature'])
             rh_envSensor = envSensor['RH']
             delta_t = t_cpu - t_envSensor
