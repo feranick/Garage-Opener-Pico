@@ -29,7 +29,7 @@ version = "2025.10.19.1"
 
 I2C_SCL = board.GP17
 I2C_SDA = board.GP16
-DOOR_SIGNAL = board.GP18
+DOOR_SIGNAL = board.GP22
 SONAR_TRIGGER = board.GP15
 SONAR_ECHO = board.GP14
 
