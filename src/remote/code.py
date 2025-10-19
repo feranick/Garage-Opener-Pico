@@ -4,6 +4,8 @@
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
+version = "2025.10.19.1"
+
 import wifi
 import time
 import microcontroller
@@ -17,21 +19,29 @@ import ssl
 import json
 
 import adafruit_requests
+from adafruit_httpserver import Server, MIMETypes, Response
 
 #from adafruit_datetime import datetime
 #import adafruit_ntp
 
-import adafruit_hcsr04
-import adafruit_mcp9808
-from adafruit_httpserver import Server, MIMETypes, Response
-
-version = "2025.10.19.1"
-
-I2C_SCL = board.GP17
-I2C_SDA = board.GP16
 DOOR_SIGNAL = board.GP22
+
+# HCSR04 - SONAR
+import adafruit_hcsr04
 SONAR_TRIGGER = board.GP15
 SONAR_ECHO = board.GP14
+
+# MCP9808 ONLY
+import adafruit_mcp9808
+MCP_I2C_SCL = board.GP17
+MCP_I2C_SDA = board.GP16
+
+# BME680 ONLY
+#import adafruit_bme680
+#BME680_CLK = board.GP18
+#BME680_MOSI = board.GP19
+#BME680_MISO = board.GP16
+#BME680_OUT = board.GP17
 
 ############################
 # Initial WiFi/Safe Mode Check
@@ -318,15 +328,18 @@ class Sensors:
             print(f"Failed to initialize HCSR04: {e}")
 
         self.trigDist = conf.triggerDistance
+        self.initMCP9808()
+        self.numTimes = 1
+        
+    def initMCP9808(self):
         try:
-            i2c = busio.I2C(I2C_SCL, I2C_SDA)
+            i2c = busio.I2C(MCP_I2C_SCL, MCP_I2C_SDA)
             self.mcp = adafruit_mcp9808.MCP9808(i2c)
             self.avDeltaT = microcontroller.cpu.temperature - self.mcp.temperature
             print("Temperature sensor (MCP9808) found and initialized.")
         except Exception as e:
             self.avDeltaT = 0
             print(f"Failed to initialize MCP9808: {e}")
-        self.numTimes = 1
 
     def getTemperature(self):
         t_cpu = microcontroller.cpu.temperature
