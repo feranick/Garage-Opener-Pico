@@ -32,17 +32,17 @@ SONAR_TRIGGER = board.GP15
 SONAR_ECHO = board.GP14
 
 # MCP9808 ONLY
-import adafruit_mcp9808
-MCP_I2C_SCL = board.GP17
-MCP_I2C_SDA = board.GP16
+#import adafruit_mcp9808
+#MCP_I2C_SCL = board.GP17
+#MCP_I2C_SDA = board.GP16
 
 # BME680 NS BME280 ONLY
-#import adafruit_bme680
+import adafruit_bme680
 #from adafruit_bme280 import basic as adafruit_bme280
-#BME_CLK = board.GP18
-#BME_MOSI = board.GP19
-#BME_MISO = board.GP16
-#BME_OUT = board.GP17
+BME_CLK = board.GP18
+BME_MOSI = board.GP19
+BME_MISO = board.GP16
+BME_OUT = board.GP17
 
 ############################
 # Initial WiFi/Safe Mode Check
@@ -331,8 +331,9 @@ class Sensors:
 
         self.trigDist = conf.triggerDistance
         try:
-            self.envSensorName = self.initMCP9808()
-            #self.envSensorName = self.initBME680()
+            #self.envSensorName = self.initMCP9808()
+            #self.envSensorName = self.initBME280()
+            self.envSensorName = self.initBME680()
             self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
             print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
         except Exception as e:
@@ -375,8 +376,8 @@ class Sensors:
             else:
                 return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--'}
         try:
-            envSensor = self.getEnvDataMCP9808()
-            #envSensor = self.getEnvDataBME680()
+            #envSensor = self.getEnvDataMCP9808()
+            envSensor = self.getEnvDataBME680()
             #envSensor = self.getEnvDataBME280()
             t_envSensor = float(envSensor['temperature'])
             rh_envSensor = envSensor['RH']
@@ -387,7 +388,7 @@ class Sensors:
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(1)
-            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH': f"{rh_envSensor} %"}
+            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH': f"{round(rh_envSensor,1)} %"}
         except:
             print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(1)
