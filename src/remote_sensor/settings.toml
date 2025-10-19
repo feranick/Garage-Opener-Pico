@@ -4,4 +4,4 @@ CIRCUITPY_WEB_INSTANCE_NAME = "GarageOpener-Sensor"
 CIRCUITPY_WEB_API_PASSWORD="passw0rd"
 CIRCUITPY_WEB_API_PORT=206
 triggerDistance = 20
-sensorTemperatureOffset = -5
+sensorTemperatureOffset = 0
