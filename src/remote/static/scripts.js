@@ -213,7 +213,6 @@ async function updateStatus(getCoordsFlag) {
     //aqi = await getOW(coords, data.ow_api_key);
     aqi = await getOM(coords);
     
-    
     //document.getElementById("door_status").textContent = data.state;
     document.getElementById("Submit").value = "Door \n\n" + data.state;
     document.getElementById("Submit").style.backgroundColor = data.button_color;
@@ -221,7 +220,7 @@ async function updateStatus(getCoordsFlag) {
 
     document.getElementById("locTemp").textContent = data.locTemp;
     document.getElementById("remoteTemp").textContent = data.remoteTemp;
-    document.getElementById("locRH").textContent = "--";
+    document.getElementById("locRH").textContent = data.locRH;
     document.getElementById("remoteRH").textContent = data.remoteRH;
 
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";

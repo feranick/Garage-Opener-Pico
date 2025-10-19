@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.19.1
+# * v2025.10.19.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.19.1"
+version = "2025.10.19.2"
 
 import wifi
 import time
@@ -187,12 +187,13 @@ class GarageServer:
         def api_status(request):
             #state = self.sensors.checkStatusSonar()
             remoteData = self.getStatusRemoteSonar()
-            temperature = self.sensors.getTemperature()
+            localData = self.sensors.getEnvData()
 
             data_dict = {
                 "state": remoteData['state'],
                 "button_color": remoteData['button_color'],
-                "locTemp": temperature,
+                "locTemp": localData['temperature'],
+                "locRH": localData['RH'],
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
                 "remoteURL" : self.sonarURL,
@@ -328,41 +329,58 @@ class Sensors:
             print(f"Failed to initialize HCSR04: {e}")
 
         self.trigDist = conf.triggerDistance
-        self.initMCP9808()
+        try:
+            self.envSensorName = self.initMCP9808()
+            #self.envSensorName = self.initBME680()
+            self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
+            print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
+        except Exception as e:
+            self.avDeltaT = 0
+            print(f"Failed to initialize {self.envSensorName}: {e}")
         self.numTimes = 1
         
     def initMCP9808(self):
-        try:
-            i2c = busio.I2C(MCP_I2C_SCL, MCP_I2C_SDA)
-            self.mcp = adafruit_mcp9808.MCP9808(i2c)
-            self.avDeltaT = microcontroller.cpu.temperature - self.mcp.temperature
-            print("Temperature sensor (MCP9808) found and initialized.")
-        except Exception as e:
-            self.avDeltaT = 0
-            print(f"Failed to initialize MCP9808: {e}")
+        i2c = busio.I2C(MCP_I2C_SCL, MCP_I2C_SDA)
+        self.envSensor = adafruit_mcp9808.MCP9808(i2c)
+        return "MCP9808"
+        
+    def getEnvDataMCP9808(self):
+        return {'temperature': str(self.envSensor.temperature), 'RH': '--'}
+            
+    def initBME680(self):
+        spi = busio.SPI(BME680_CLK, MISO=BME680_MISO, MOSI=BME680_MOSI)
+        bme_cs = digitalio.DigitalInOut(BME680_OUT)
+        self.envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
+        return "BME680"
+        
+    def getEnvDataBME680(self):
+        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity)}
 
-    def getTemperature(self):
+    def getEnvData(self):
         t_cpu = microcontroller.cpu.temperature
-        if not self.mcp:
-            print("MCP9808 not initialized. Using CPU temp with estimated offset.")
+        if not self.envSensor:
+            print(f"{self.envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)"
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", 'RH': '--'}
             else:
-                return f"{round(t_cpu, 1)} \u00b0C (CPU raw)"
+                return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--'}
         try:
-            t_mcp = self.mcp.temperature
-            delta_t = t_cpu - t_mcp
+            envSensor = self.getEnvDataMCP9808()
+            #envSensor = self.getEnvDataBME680()
+            t_envSensor = float(envSensor['temperature'])
+            rh_envSensor = envSensor['RH']
+            delta_t = t_cpu - t_envSensor
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
             self.avDeltaT = (self.avDeltaT * self.numTimes + delta_t)/(self.numTimes+1)
             self.numTimes += 1
-            print("Av. CPU/MCP T diff: "+str(self.avDeltaT)+" "+str(self.numTimes))
+            print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(1)
-            return str(round(t_mcp,1)) + " \u00b0C"
+            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH': f"{rh_envSensor} %"}
         except:
-            print("MCP9806 not available. Av CPU/MCP T diff: "+str(self.avDeltaT))
+            print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(1)
-            return str(round(t_cpu-self.avDeltaT, 1))+" \u00b0C (CPU)"
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)", 'RH': '--'}
 
 ############################
 # Main
