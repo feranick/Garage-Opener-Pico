@@ -222,6 +222,8 @@ async function updateStatus(getCoordsFlag) {
     document.getElementById("remoteTemp").textContent = data.remoteTemp;
     document.getElementById("locRH").textContent = data.locRH;
     document.getElementById("remoteRH").textContent = data.remoteRH;
+    document.getElementById("locGas").textContent = data.locGas;
+    document.getElementById("locGas").style.color = getVocColor(data.locGas);
 
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
     
@@ -394,6 +396,24 @@ const uvColorRanges = [
     { min: 7.5, max: 10.5, color: "brown" },
     { min: 10.5, max: 1e8, color: "purple" }
 ];
+
+function getVocColor(value) {
+    if (value >= 1e5 && value <= 1e10) {
+        return "green";
+    } else if (value >= 7.5e4 && value < 1e5) {
+        return "yellow";
+    } else if (value >= 5e4 && value < 7.5e4) {
+        return "orange";
+    } else if (value >= 2.5e4 && value < 5e4) {
+        return "red";
+    } else if (value >= 1e4 && value < 2.5e4) {
+        return "brown";
+    } else if (value >= 0 && value < 1e4) {
+        return "purple";
+    } else {
+        return "black";
+    }
+}
 
 /**
  * Converts a numerical weather code into a descriptive weather string.

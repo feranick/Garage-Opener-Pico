@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.19.2
+# * v2025.10.19.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.19.2"
+version = "2025.10.19.3"
 
 import wifi
 import time
@@ -71,6 +71,7 @@ if supervisor.runtime.safe_mode_reason is not None:
 class Conf:
     def __init__(self):
         self.triggerDistance = 20.0
+        self.sensorTemperatureOffset = 0
         try:
             trig_dist_env = os.getenv("triggerDistance")
             if trig_dist_env is not None:
@@ -79,6 +80,15 @@ class Conf:
                 print("Warning: 'triggerDistance' not found in settings.toml. Using default.")
         except ValueError:
             print(f"Warning: Invalid triggerDistance '{trig_dist_env}' in settings.toml. Using default.")
+        
+        try:
+            temperature_offset = os.getenv("sensorTemperatureOffset")
+            if temperature_offset is not None:
+                self.sensorTemperatureOffset = float(temperature_offset)
+            else:
+                print("Warning: 'sensorTemperatureOffset' not found in settings.toml. Using default.")
+        except ValueError:
+            print(f"Warning: Invalid triggerDistance '{sensorTemperatureOffset}' in settings.toml. Using default.")
 
 ############################
 # Server
@@ -195,6 +205,7 @@ class GarageServer:
                 "button_color": remoteData['button_color'],
                 "locTemp": localData['temperature'],
                 "locRH": localData['RH'],
+                "locGas": localData['gas'],
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
                 "remoteURL" : self.sonarURL,
@@ -323,13 +334,15 @@ class Control:
 class Sensors:
     def __init__(self, conf):
         self.sonar = None
-        self.mcp = None
+        self.envSensor = None
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
             print(f"Failed to initialize HCSR04: {e}")
 
         self.trigDist = conf.triggerDistance
+        self.temp_offset = conf.sensorTemperatureOffset
+
         try:
             #self.envSensorName = self.initMCP9808()
             #self.envSensorName = self.initBME280()
@@ -347,13 +360,7 @@ class Sensors:
         return "MCP9808"
         
     def getEnvDataMCP9808(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': '--'}
-            
-    def initBME680(self):
-        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME_OUT)
-        self.envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
-        return "BME680"
+        return {'temperature': str(self.envSensor.temperature), 'RH': '--', 'gas': '--'}
         
     def initBME280(self):
         spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
@@ -362,25 +369,32 @@ class Sensors:
         return "BME280"
         
     def getEnvDataBME280(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity)}
+        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity), 'gas': '--'}
+        
+    def initBME680(self):
+        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
+        bme_cs = digitalio.DigitalInOut(BME_OUT)
+        self.envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
+        return "BME680"
     
     def getEnvDataBME680(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity)}
+        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.humidity), 'gas': str(self.envSensor.gas)}
 
     def getEnvData(self):
         t_cpu = microcontroller.cpu.temperature
         if not self.envSensor:
             print(f"{self.envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", 'RH': '--'}
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", 'RH': '--', 'gas': '--'}
             else:
-                return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--'}
+                return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--', 'gas': '--'}
         try:
             #envSensor = self.getEnvDataMCP9808()
             envSensor = self.getEnvDataBME680()
             #envSensor = self.getEnvDataBME280()
-            t_envSensor = float(envSensor['temperature'])
+            t_envSensor = float(envSensor['temperature']) + self.temp_offset
             rh_envSensor = envSensor['RH']
+            gas_envSensor = envSensor['gas']
             delta_t = t_cpu - t_envSensor
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
@@ -388,11 +402,11 @@ class Sensors:
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(1)
-            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH': f"{round(rh_envSensor,1)} %"}
+            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH': f"{int(float(rh_envSensor))} %", 'gas': f"{int(float(gas_envSensor))}"}
         except:
             print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(1)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)", 'RH': '--'}
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)", 'RH': '--', 'gas': '--'}
 
 ############################
 # Main
