@@ -38,6 +38,7 @@ MCP_I2C_SDA = board.GP16
 
 # BME680 NS BME280 ONLY
 #import adafruit_bme680
+#from adafruit_bme280 import basic as adafruit_bme280
 #BME_CLK = board.GP18
 #BME_MOSI = board.GP19
 #BME_MISO = board.GP16
