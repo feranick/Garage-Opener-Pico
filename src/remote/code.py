@@ -335,6 +335,7 @@ class Sensors:
     def __init__(self, conf):
         self.sonar = None
         self.envSensor = None
+        self.envSensorName = None
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
@@ -351,7 +352,7 @@ class Sensors:
             print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
         except Exception as e:
             self.avDeltaT = 0
-            print(f"Failed to initialize {self.envSensorName}: {e}")
+            print(f"Failed to initialize enironmental sensor: {e}")
         self.numTimes = 1
         
     def initMCP9808(self):

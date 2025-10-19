@@ -1,11 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * Sensor only
-# * v2025.10.19.1
+# * Environmental and remote sonar only
+# * v2025.10.19.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.18.1"
+version = "2025.10.19.2"
 
 import wifi
 import time
@@ -30,10 +30,10 @@ SONAR_TRIGGER = board.GP15
 SONAR_ECHO = board.GP13
 
 from adafruit_bme280 import basic as adafruit_bme280
-BME280_CLK = board.GP18
-BME280_MOSI = board.GP19
-BME280_MISO = board.GP16
-BME280_OUT = board.GP17
+BME_CLK = board.GP18
+BME_MOSI = board.GP19
+BME_MISO = board.GP16
+BME_OUT = board.GP17
 
 ############################
 # Initial WiFi/Safe Mode Check
@@ -62,6 +62,7 @@ if supervisor.runtime.safe_mode_reason is not None:
 class Conf:
     def __init__(self):
         self.triggerDistance = 20.0
+        self.sensorTemperatureOffset = 0
         try:
             trig_dist_env = os.getenv("triggerDistance")
             if trig_dist_env is not None:
@@ -70,6 +71,16 @@ class Conf:
                 print("Warning: 'triggerDistance' not found in settings.toml. Using default.")
         except ValueError:
             print(f"Warning: Invalid triggerDistance '{trig_dist_env}' in settings.toml. Using default.")
+            
+        try:
+            temperature_offset = os.getenv("sensorTemperatureOffset")
+            if temperature_offset is not None:
+                self.sensorTemperatureOffset = float(temperature_offset)
+            else:
+                print("Warning: 'sensorTemperatureOffset' not found in settings.toml. Using default.")
+        except ValueError:
+            print(f"Warning: Invalid triggerDistance '{sensorTemperatureOffset}' in settings.toml. Using default.")
+
 
 ############################
 # Server
@@ -224,32 +235,34 @@ class Sensors:
     def __init__(self, conf):
         self.sonar = None
         self.envSensor = None
+        self.envSensorName = None
+        
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
             print(f"Failed to initialize HCSR04: {e}")
 
         self.trigDist = conf.triggerDistance
+        self.temp_offset = conf.sensorTemperatureOffset
 
         try:
-            self.envSensorName = self.initBME680()
+            self.envSensorName = self.initBME280()
             self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
             print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
         except Exception as e:
-            self.envSensor = None
             self.avDeltaT = 0
-            print(f"Failed to initialize {self.envSensorName}: {e}")
+            print(f"Failed to initialize enironmental sensor: {e}")
 
         self.numTimes = 1
-        
+
     def initBME280(self):
         spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
         bme_cs = digitalio.DigitalInOut(BME_OUT)
-        self.envSensor = adafruit_bme680.Adafruit_BME280_SPI(spi, bme_cs)
+        self.envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
         return "BME280"
-        
+
     def getEnvDataBME280(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity), 'gas': '--'}
+        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity), 'pressure': str(self.envSensor.pressure)}
 
     def getEnvData(self):
         t_cpu = microcontroller.cpu.temperature
@@ -270,13 +283,13 @@ class Sensors:
                 self.numTimes = int(1e+1)
             self.avDeltaT = (self.avDeltaT * self.numTimes + delta_t)/(self.numTimes+1)
             self.numTimes += 1
-            print("Av. CPU/MCP T diff: "+str(self.avDeltaT)+" "+str(self.numTimes))
+            print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(1)
             return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH':  f"{int(float(rh_envSensor))} %", 'pressure': str(p_envSensor)}
         except:
-            print("{self.envSensorName} not available. Av CPU/MCP T diff: "+str(self.avDeltaT))
+            print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(1)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)",'RH': "--", 'pressure': "--"]
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)",'RH': "--", 'pressure': "--"}
 
     def checkStatusSonar(self):
         if not self.sonar:
