@@ -66,6 +66,13 @@ small { display: block; margin-top: 5px; }
 </style>
 <script type="text/javascript" src="scripts.js" ></script>
 
+<fieldset>
+Indoor T: <span id="locTemp">...</span>
+   RH: <span id="locRH">...</span>
+<br>Garage T: <span id="remoteTemp">...</span>
+   RH: <span id="remoteRH">...</span>
+</fieldset>
+
 <form name="submitForm">
     <input type="button" id="Submit" value="Loading..." onclick="waitWarn(0)" />
 </form>
@@ -74,12 +81,7 @@ small { display: block; margin-top: 5px; }
     <input type="button" id="Status" value="Update Status" onclick="waitWarn(1)" />
     <br><label id="warnLabel"></label>
 </form>
-<fieldset>
-Indoor T: <span id="locTemp">...</span>
-   RH: <span id="locRH">...</span>
-<br>Garage T: <span id="remoteTemp">...</span>
-   RH: <span id="remoteRH">...</span>
-</fieldset>
+
 <fieldset>
 Temperature: <span id="ext_temperature">...</span>
 <br>Real Feeling: <span id="ext_heatindex">...</span>
