@@ -177,7 +177,8 @@ async function getNWS(coords) {
     else {
         r.presentWeather = getWeatherDescription(omNowData['current']['weather_code']);
         }
-    r.futureWeather = getWeatherDescription(omNextData['hourly']['weather_code'][36]);
+    r.futureWeatherAM = getWeatherDescription(omNextData['hourly']['weather_code'][33]);
+    r.futureWeatherPM = getWeatherDescription(omNextData['hourly']['weather_code'][38]);
     return r;
     }
 
@@ -269,7 +270,8 @@ async function updateStatus(getCoordsFlag) {
     document.getElementById("ext_pressure").textContent = nws.seaLevelPressure+" mbar";
     document.getElementById("ext_heatindex").textContent = nws.heatIndex+" \u00b0C";
     document.getElementById("ext_weather").textContent = nws.presentWeather;
-    document.getElementById("ext_next_weather").textContent = nws.futureWeather;
+    document.getElementById("ext_next_weather_am").textContent = nws.futureWeatherAM;
+    document.getElementById("ext_next_weather_pm").textContent = nws.futureWeatherPM;
     document.getElementById("ext_visibility").textContent = nws.visibility+" m";
     document.getElementById("ext_dewpoint").textContent = nws.dewpoint+" \u00b0C";
     document.getElementById("ext_wetbulb").textContent = nws.wetbulb+" \u00b0C";
