@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.21.1
+# * v2025.10.22.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.21.1"
+version = "2025.10.22.1"
 
 import wifi
 import time
@@ -345,9 +345,9 @@ class Sensors:
         self.temp_offset = conf.sensorTemperatureOffset
 
         try:
-            #self.envSensorName = self.initMCP9808()
-            #self.envSensorName = self.initBME280()
             self.envSensorName = self.initBME680()
+            #self.envSensorName = self.initBME280()
+            #self.envSensorName = self.initMCP9808()
             self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
             print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
         except Exception as e:
@@ -366,7 +366,7 @@ class Sensors:
     def initBME280(self):
         spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
         bme_cs = digitalio.DigitalInOut(BME_OUT)
-        self.envSensor = adafruit_bme680.Adafruit_BME280_SPI(spi, bme_cs)
+        self.envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
         return "BME280"
         
     def getEnvDataBME280(self):
@@ -390,9 +390,9 @@ class Sensors:
             else:
                 return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--', 'gas': '--'}
         try:
-            #envSensor = self.getEnvDataMCP9808()
             envSensor = self.getEnvDataBME680()
             #envSensor = self.getEnvDataBME280()
+            #envSensor = self.getEnvDataMCP9808()
             t_envSensor = float(envSensor['temperature']) + self.temp_offset
             rh_envSensor = envSensor['RH']
             gas_envSensor = envSensor['gas']
