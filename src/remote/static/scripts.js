@@ -227,9 +227,20 @@ async function updateStatus(getCoordsFlag) {
     document.getElementById("remoteTemp").textContent = data.remoteTemp;
     document.getElementById("locRH").textContent = data.locRH;
     document.getElementById("remoteRH").textContent = data.remoteRH;
-    document.getElementById("locGas").textContent = data.locGas;
-    document.getElementById("locGas").style.color = getVocColor(data.locGas);
-
+    
+    if(data.locGas !== "--") {
+        document.getElementById('locGas').style.display = 'block';
+        document.getElementById('locGas_label').style.display = 'block';
+        document.getElementById('locGas_units').style.display = 'block';
+        document.getElementById("locGas").textContent = data.locGas;
+        document.getElementById("locGas").style.color = getVocColor(data.locGas);
+        }
+    else {
+        document.getElementById('locGas').style.display = 'none';
+        document.getElementById('locGas_label').style.display = 'none';
+        document.getElementById('locGas_units').style.display = 'none';
+        }
+    
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
     
     document.getElementById("ext_temperature").textContent = nws.temperature+" \u00b0C";
