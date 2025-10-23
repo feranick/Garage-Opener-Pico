@@ -327,7 +327,7 @@ class Control:
 
     def runControl(self):
         self.btn.value = True
-        time.sleep(1)
+        time.sleep(2)
         self.btn.value = False
         time.sleep(1)
 
