@@ -296,7 +296,7 @@ class GarageServer:
 
     def getStatusRemoteSonar(self):
         try:
-            r = self.requests.get("http://"+self.sonarURL+"/api/status")
+            r = self.requests.get("http://"+self.sonarURL+"/api/status", timeout=2.0)
             data = r.json()
             r.close()
             return data
