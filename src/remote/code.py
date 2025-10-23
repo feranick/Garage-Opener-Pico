@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.22.2
+# * v2025.10.23.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.22.2"
+version = "2025.10.23.1"
 
 import wifi
 import time
@@ -80,7 +80,7 @@ class Conf:
                 print("Warning: 'triggerDistance' not found in settings.toml. Using default.")
         except ValueError:
             print(f"Warning: Invalid triggerDistance '{trig_dist_env}' in settings.toml. Using default.")
-        
+
         try:
             temperature_offset = os.getenv("sensorTemperatureOffset")
             if temperature_offset is not None:
@@ -295,14 +295,14 @@ class GarageServer:
             time.sleep(0.01)
 
     def getStatusRemoteSonar(self):
-        try:
-            r = self.requests.get("http://"+self.sonarURL+"/api/status", timeout=2.0)
-            data = r.json()
-            r.close()
-            return data
-        except Exception as e:
-            print(f"Sonar not available: {e}")
-            return {'pressure': '--', 'button_color': 'orange', 'state': 'N/A', 'RH': '--', 'temperature': '--'}
+        #try:
+        r = self.requests.get("http://"+self.sonarURL+"/api/status", timeout=3.0)
+        data = r.json()
+        r.close()
+        return data
+        #except Exception as e:
+        #    print(f"Sonar not available: {e}")
+        #    return {'pressure': '--', 'button_color': 'orange', 'state': 'N/A', 'RH': '--', 'temperature': '--'}
 
     '''
     def setup_ntp(self):
@@ -354,30 +354,30 @@ class Sensors:
             self.avDeltaT = 0
             print(f"Failed to initialize enironmental sensor: {e}")
         self.numTimes = 1
-        
+
     def initMCP9808(self):
         i2c = busio.I2C(MCP_I2C_SCL, MCP_I2C_SDA)
         self.envSensor = adafruit_mcp9808.MCP9808(i2c)
         return "MCP9808"
-        
+
     def getEnvDataMCP9808(self):
         return {'temperature': str(self.envSensor.temperature), 'RH': '--', 'gas': '--'}
-        
+
     def initBME280(self):
         spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
         bme_cs = digitalio.DigitalInOut(BME_OUT)
         self.envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
         return "BME280"
-        
+
     def getEnvDataBME280(self):
         return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity), 'gas': '--'}
-        
+
     def initBME680(self):
         spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
         bme_cs = digitalio.DigitalInOut(BME_OUT)
         self.envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
         return "BME680"
-    
+
     def getEnvDataBME680(self):
         return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.humidity), 'gas': str(self.envSensor.gas)}
 
