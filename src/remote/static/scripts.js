@@ -308,7 +308,7 @@ function waitWarn(a) {
 
     if (a === 0) {
         document.getElementById("Submit").disabled = true;
-        document.getElementById("Submit").style.backgroundColor = "#155084";
+        document.getElementById("Submit").style.backgroundColor = "orange";
         fetch('./run') // Use fetch for the run command
             .then(response => {
                 if (response.ok) {

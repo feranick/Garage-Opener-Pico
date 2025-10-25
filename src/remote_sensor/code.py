@@ -144,7 +144,7 @@ class GarageServer:
 
     def setup_server(self):
         pool = socketpool.SocketPool(wifi.radio)
-        self.server = Server(pool, debug=True)
+        self.server = Server(pool, debug=False)
 
         # URL Requests are now handled with Javascript client-side.
         #self.requests = adafruit_requests.Session(pool, ssl.create_default_context())
@@ -284,11 +284,11 @@ class Sensors:
             self.avDeltaT = (self.avDeltaT * self.numTimes + delta_t)/(self.numTimes+1)
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
-            time.sleep(1)
+            time.sleep(0.5)
             return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH':  f"{int(float(rh_envSensor))} %", 'pressure': str(p_envSensor)}
         except:
             print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
-            time.sleep(1)
+            time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)",'RH': "--", 'pressure': "--"}
 
     def checkStatusSonar(self):
