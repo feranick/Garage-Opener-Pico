@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.23.1
+# * v2025.10.25.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.23.1"
+version = "2025.10.25.1"
 
 import wifi
 import time
@@ -21,8 +21,7 @@ import json
 import adafruit_requests
 from adafruit_httpserver import Server, MIMETypes, Response
 
-#from adafruit_datetime import datetime
-#import adafruit_ntp
+import adafruit_ntp
 
 DOOR_SIGNAL = board.GP22
 
@@ -199,6 +198,8 @@ class GarageServer:
             #state = self.sensors.checkStatusSonar()
             remoteData = self.getStatusRemoteSonar()
             localData = self.sensors.getEnvData()
+            
+            UTC = self.getUTC()
 
             data_dict = {
                 "state": remoteData['state'],
@@ -215,6 +216,7 @@ class GarageServer:
                 "zipcode": self.zipcode,
                 "country": self.country,
                 "version": version,
+                "UTC": UTC,
             }
             json_content = json.dumps(data_dict)
 
@@ -295,22 +297,27 @@ class GarageServer:
             time.sleep(0.01)
 
     def getStatusRemoteSonar(self):
-        #try:
-        r = self.requests.get("http://"+self.sonarURL+"/api/status", timeout=3.0)
-        data = r.json()
-        r.close()
-        return data
-        #except Exception as e:
-        #    print(f"Sonar not available: {e}")
-        #    return {'pressure': '--', 'button_color': 'orange', 'state': 'N/A', 'RH': '--', 'temperature': '--'}
+        try:
+            r = self.requests.get("http://"+self.sonarURL+"/api/status", timeout=3.0)
+            data = r.json()
+            r.close()
+            return data
+        except Exception as e:
+            print(f"Sonar not available: {e}")
+            return {'pressure': '--', 'button_color': 'orange', 'state': 'N/A', 'RH': '--', 'temperature': '--'}
 
-    '''
     def setup_ntp(self):
         try:
             self.ntp = adafruit_ntp.NTP(socketpool.SocketPool(wifi.radio), tz_offset=-5)
         except Exception as e:
             print(f"Failed to setup NTP: {e}")
-    '''
+            
+    def getUTC(self):
+        try:
+            return self.ntp.utc_ns
+        except Exception as e:
+            print(f"Error converting NTP time: {e}")
+            return 0
 
     def reboot(self):
         time.sleep(2)
