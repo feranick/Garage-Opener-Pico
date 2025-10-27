@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.25.1
+# * v2025.10.27.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.25.1"
+version = "2025.10.27.1"
 
 import wifi
 import time
@@ -118,12 +118,8 @@ class GarageServer:
 
         try:
             self.connect_wifi()
-
-            #this is now handled cliet side in javascript
-            #self.lat, self.lon = self.get_openweather_geoloc()
-
             self.setup_server()
-            #self.setup_ntp()
+            self.setup_ntp()
             print("\nDevice IP:", self.ip, "\nListening...")
         except RuntimeError as err:
             print(f"Initialization error: {err}")
@@ -198,17 +194,18 @@ class GarageServer:
             #state = self.sensors.checkStatusSonar()
             remoteData = self.getStatusRemoteSonar()
             localData = self.sensors.getEnvData()
-            
+
             UTC = self.getUTC()
 
             data_dict = {
                 "state": remoteData['state'],
-                "button_color": remoteData['button_color'],
                 "locTemp": localData['temperature'],
                 "locRH": localData['RH'],
                 "locGas": localData['gas'],
+                "locSens": localData['type'],
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
+                "remoteSens": remoteData['type'],
                 "remoteURL" : self.sonarURL,
                 "ip": self.ip,
                 "ow_api_key": self.ow_api_key,
@@ -304,14 +301,14 @@ class GarageServer:
             return data
         except Exception as e:
             print(f"Sonar not available: {e}")
-            return {'pressure': '--', 'button_color': 'orange', 'state': 'N/A', 'RH': '--', 'temperature': '--'}
+            return {'pressure': '--', 'state': 'N/A', 'RH': '--', 'temperature': '--', 'type': '--'}
 
     def setup_ntp(self):
         try:
             self.ntp = adafruit_ntp.NTP(socketpool.SocketPool(wifi.radio), tz_offset=-5)
         except Exception as e:
             print(f"Failed to setup NTP: {e}")
-            
+
     def getUTC(self):
         try:
             return self.ntp.utc_ns
@@ -393,16 +390,16 @@ class Sensors:
         if not self.envSensor:
             print(f"{self.envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", 'RH': '--', 'gas': '--'}
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU adj.'}
             else:
-                return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--', 'gas': '--'}
+                return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU raw'}
         try:
             envSensor = self.getEnvDataBME680()
             #envSensor = self.getEnvDataBME280()
             #envSensor = self.getEnvDataMCP9808()
-            t_envSensor = float(envSensor['temperature']) + self.temp_offset
-            rh_envSensor = envSensor['RH']
-            gas_envSensor = envSensor['gas']
+            t_envSensor = round(float(envSensor['temperature']) + self.temp_offset,1)
+            rh_envSensor = round(float(envSensor['RH']),1)
+            gas_envSensor = int(float(envSensor['gas']))
             delta_t = t_cpu - t_envSensor
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
@@ -410,11 +407,11 @@ class Sensors:
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH': f"{int(float(rh_envSensor))} %", 'gas': f"{int(float(gas_envSensor))}"}
+            return {'temperature': f"{t_envSensor}", 'RH': f"{rh_envSensor}", 'gas': f"{gas_envSensor}", 'type': 'sensor'}
         except:
             print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)", 'RH': '--', 'gas': '--'}
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU adj'}
 
 ############################
 # Main

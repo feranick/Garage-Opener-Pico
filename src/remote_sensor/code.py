@@ -1,11 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Environmental and remote sonar only
-# * v2025.10.19.2
+# * v2025.10.27.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.19.2"
+version = "2025.10.27.1"
 
 import wifi
 import time
@@ -19,7 +19,6 @@ import socketpool
 import ssl
 import json
 
-#from adafruit_datetime import datetime
 #import adafruit_requests
 #import adafruit_ntp
 
@@ -71,7 +70,7 @@ class Conf:
                 print("Warning: 'triggerDistance' not found in settings.toml. Using default.")
         except ValueError:
             print(f"Warning: Invalid triggerDistance '{trig_dist_env}' in settings.toml. Using default.")
-            
+
         try:
             temperature_offset = os.getenv("sensorTemperatureOffset")
             if temperature_offset is not None:
@@ -94,9 +93,6 @@ class GarageServer:
 
         try:
             self.connect_wifi()
-
-            #this is now handled cliet side in javascript
-            #self.lat, self.lon = self.get_openweather_geoloc()
 
             self.setup_server()
             print("\nDevice IP:", self.ip, "\nListening...")
@@ -146,9 +142,6 @@ class GarageServer:
         pool = socketpool.SocketPool(wifi.radio)
         self.server = Server(pool, debug=False)
 
-        # URL Requests are now handled with Javascript client-side.
-        #self.requests = adafruit_requests.Session(pool, ssl.create_default_context())
-
         # --- Routes ---
         @self.server.route("/api/status")
         def api_status(request):
@@ -158,11 +151,11 @@ class GarageServer:
             envData = self.sensors.getEnvData()
 
             data_dict = {
-                "state": state[0],
-                "button_color": state[1],
+                "state": state,
                 "temperature": envData['temperature'],
                 "RH": envData['RH'],
                 "pressure": envData['pressure'],
+                "type": envData['type'],
             }
             json_content = json.dumps(data_dict)
 
@@ -236,7 +229,7 @@ class Sensors:
         self.sonar = None
         self.envSensor = None
         self.envSensorName = None
-        
+
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
@@ -270,14 +263,14 @@ class Sensors:
             print(f"{self.envSensorName} not initialized. Using CPU temp with estimated offset.")
 
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)} \u00b0C (CPU adj.)", 'RH': '--','pressure': '--'}
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 'RH': '--','pressure': '--', 'type': 'CPU adj'}
             else:
-                return {'temperature': f"{round(t_cpu, 1)} \u00b0C (CPU raw)", 'RH': '--','pressure': '--'}
+                return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--','pressure': '--', 'type': 'CPU raw'}
         try:
             envSensor = self.getEnvDataBME280()
-            t_envSensor = float(envSensor['temperature']) + self.temp_offset
-            rh_envSensor = envSensor['RH']
-            p_envSensor = envSensor['pressure']
+            t_envSensor = round(float(envSensor['temperature']) + self.temp_offset, 1)
+            rh_envSensor = round(float(envSensor['RH']),1)
+            p_envSensor = int(float(envSensor['pressure']))
             delta_t = t_cpu - t_envSensor
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
@@ -285,11 +278,11 @@ class Sensors:
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_envSensor,1)} \u00b0C", 'RH':  f"{int(float(rh_envSensor))} %", 'pressure': str(p_envSensor)}
+            return {'temperature': f"{t_envSensor}", 'RH':  f"{rh_envSensor}", 'pressure': f"{p_envSensor}", 'type': 'sensor'}
         except:
             print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)} \u00b0C (CPU)",'RH': "--", 'pressure': "--"}
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",'RH': "--", 'pressure': "--", 'type': 'CPU raw'}
 
     def checkStatusSonar(self):
         if not self.sonar:
@@ -301,9 +294,9 @@ class Sensors:
                 dist = self.sonar.distance
                 print("Distance: "+str(dist))
                 if dist < self.trigDist:
-                    return ["OPEN", "red"]
+                    return "OPEN"
                 else:
-                    return ["CLOSED", "green"]
+                    return "CLOSED"
                 time.sleep(0.5)
                 return st
             except RuntimeError as err:
@@ -311,7 +304,7 @@ class Sensors:
                 nt += 1
                 time.sleep(0.5)
         print(" Sonar status not available")
-        return ["N/A", "orange"]
+        return "N/A"
 
 
 ############################

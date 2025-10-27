@@ -201,13 +201,16 @@ async function updateStatus(getCoordsFlag) {
     
     //document.getElementById("door_status").textContent = data.state;
     document.getElementById("Submit").value = "Door \n\n" + data.state;
-    document.getElementById("Submit").style.backgroundColor = data.button_color;
+    document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
     document.getElementById("Status").style.backgroundColor = "navy";
 
-    document.getElementById("locTemp").textContent = data.locTemp;
-    document.getElementById("remoteTemp").textContent = data.remoteTemp;
-    document.getElementById("locRH").textContent = data.locRH;
-    document.getElementById("remoteRH").textContent = data.remoteRH;
+    document.getElementById("locTemp").textContent = data.locTemp + " \u00B0C";
+    document.getElementById("remoteTemp").textContent = data.remoteTemp + " \u00B0C";
+    document.getElementById("locRH").textContent = data.locRH + "%";
+    document.getElementById("remoteRH").textContent = data.remoteRH + "%";
+    document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";
+    document.getElementById("remoteWBT").textContent = getWetBulbTemp(data.remoteTemp, data.remoteRH, data.remoteSens) + " \u00B0C";
+    
     
     if(data.locGas !== "--") {
         document.getElementById('locGas').style.display = 'block';
@@ -414,6 +417,17 @@ function getVocColor(value) {
     }
 }
 
+function doorColor(state) {
+    if (state == "OPEN") {
+        return "red";
+    } else if (state == "CLOSED") {
+        return "green";
+    } else {
+        return "orange";
+    }
+}
+        
+
 /**
  * Converts a numerical weather code into a descriptive weather string.
  * This is based on the WMO (World Meteorological Organization) weather codes.
@@ -454,3 +468,23 @@ function getWeatherDescription(code) {
     default: return 'Unknown weather code';
   }
 }
+
+/**
+ * Calculates the WetBulbTemperature from temp and RH.
+ */
+function getWetBulbTemp(temp, rh, type) {
+    if (type === 'sensor') {
+        const T = parseFloat(temp);
+        const RH = parseFloat(rh);
+        let term1 = T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
+        let term2 = Math.atan(T + RH);
+        let term3 = Math.atan(RH - 1.676331);
+        let term4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
+        let term5 = 4.686035;
+        let Tw = term1 + term2 - term3 + term4 - term5;
+        return Tw.toFixed(1);
+        }
+    else {
+        return "--";
+        }
+    }
