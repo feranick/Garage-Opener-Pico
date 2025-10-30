@@ -62,3 +62,31 @@ function getCurrentDateTime() {
     formattedDate = month+"/"+day+"/"+year;
     return formattedDate+"      "+formattedTime;
     }
+
+
+function waitWarn(a) {
+    //document.getElementById("warnLabel").innerHTML = "Please wait...";
+    document.getElementById("Status").disabled = true;
+    document.getElementById("Status").style.backgroundColor = "#155084";
+
+    if (a === 0) {
+        document.getElementById("Submit").disabled = true;
+        document.getElementById("Submit").style.backgroundColor = "orange";
+        fetch('./run') // Use fetch for the run command
+            .then(response => {
+                if (response.ok) {
+                    console.log("Run control successful.");
+                    setTimeout(updateStatus, 1000);
+                } else {
+                    throw new Error('Run command failed.');
+                }
+            })
+            .catch(error => {
+                console.error('Run Error:', error);
+                document.getElementById("warnLabel").textContent = "Error during RUN.";
+                updateStatus(); // Re-enable buttons
+            });
+    } else if (a === 1) {
+        updateStatus();
+    }
+}

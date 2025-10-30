@@ -182,7 +182,7 @@ async function fetchData() {
 //////////////////////////////////////////////
 // Logic when pushing Update Status button
 //////////////////////////////////////////////
-async function updateStatus(getCoordsFlag) {
+async function updateStatus() {
     document.getElementById("Submit").value = "Door \n\n Loading...";
     document.getElementById("Status").value = "Loading...";
     //document.getElementById("warnLabel").textContent = "Testing";
@@ -285,34 +285,35 @@ async function updateStatus(getCoordsFlag) {
 //////////////////////////////////////////////
 // Logic when pushing Door Status
 //////////////////////////////////////////////
-function waitWarn(a) {
-    //document.getElementById("warnLabel").innerHTML = "Please wait...";
+async function waitWarn(a) {
+    // document.getElementById("warnLabel").innerHTML = "Please wait...";
     document.getElementById("Status").disabled = true;
     document.getElementById("Status").style.backgroundColor = "#155084";
 
     if (a === 0) {
         document.getElementById("Submit").disabled = true;
         document.getElementById("Submit").style.backgroundColor = "orange";
-        fetch('./run') // Use fetch for the run command
-            .then(response => {
-                if (response.ok) {
-                    console.log("Run control successful.");
-                    setTimeout(updateStatus, 1000, "True");
-                } else {
-                    throw new Error('Run command failed.');
-                }
-            })
-            .catch(error => {
-                console.error('Run Error:', error);
-                document.getElementById("warnLabel").textContent = "Error during RUN.";
-                updateStatus(); // Re-enable buttons
-            });
+        
+        try {
+            const response = await fetch('./run');
+            
+            if (response.ok) {
+                console.log("Run control successful.");
+                setTimeout(updateStatus, 1000);
+            } else {
+                throw new Error('Run command failed with status: ' + response.status);
+            }
+        } catch (error) {
+            console.error('Run Error:', error);
+            document.getElementById("warnLabel").textContent = "Error during RUN.";
+            updateStatus();
+        }
     } else if (a === 1) {
-        updateStatus("True");
+        updateStatus();
     }
 }
 document.addEventListener('DOMContentLoaded', updateStatus);
-setInterval(updateStatus, 30000, "False");
+setInterval(updateStatus, 30000);
 
 //////////////////////////////////////////////
 // Utilities
