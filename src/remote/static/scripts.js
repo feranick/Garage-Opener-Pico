@@ -295,7 +295,7 @@ async function waitWarn(a) {
         document.getElementById("Submit").style.backgroundColor = "orange";
         
         try {
-            const response = await fetch('./run');
+            const response = await fetch('/api/run');
             
             if (response.ok) {
                 console.log("Run control successful.");

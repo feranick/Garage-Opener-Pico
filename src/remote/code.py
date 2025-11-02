@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.10.29.1
+# * v2025.11.2.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.10.29.1"
+version = "2025.11.2.1"
 
 import wifi
 import time
@@ -176,7 +176,7 @@ class GarageServer:
             return self._serve_static_file(request, 'static/index.html')
 
         # Run Control Route
-        @self.server.route("/run")
+        @self.server.route("/api/run")
         def run_control(request):
             print("Run Control via HTTP request")
             self.control.runControl()
@@ -184,10 +184,10 @@ class GarageServer:
             return Response(request, "OK")
 
         # Status Check Route (Placeholder)
-        @self.server.route("/status")
-        def update_status(request):
-            # Use simplified Response for 200 OK
-            return Response(request, "OK")
+        #@self.server.route("/status")
+        #def update_status(request):
+        #    # Use simplified Response for 200 OK
+        #   return Response(request, "OK")
 
         @self.server.route("/api/status")
         def api_status(request):
