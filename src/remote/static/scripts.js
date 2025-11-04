@@ -211,7 +211,8 @@ async function updateStatus() {
     document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";
     document.getElementById("remoteWBT").textContent = getWetBulbTemp(data.remoteTemp, data.remoteRH, data.remoteSens) + " \u00B0C";
     
-    
+    //enable only for BME680
+    /*
     if(data.locGas !== "--") {
         document.getElementById('locGas').style.display = 'block';
         document.getElementById('locGas_label').style.display = 'block';
@@ -224,7 +225,7 @@ async function updateStatus() {
         document.getElementById('locGas_label').style.display = 'none';
         document.getElementById('locGas_units').style.display = 'none';
         }
-    
+    */
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
     
     document.getElementById("ext_temperature").textContent = nws.temperature+" \u00b0C";

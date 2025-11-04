@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.2.1
+# * v2025.11.4.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.2.1"
+version = "2025.11.4.1"
 
 import wifi
 import time
@@ -35,9 +35,15 @@ SONAR_ECHO = board.GP14
 #MCP_I2C_SCL = board.GP17
 #MCP_I2C_SDA = board.GP16
 
-# BME680 NS BME280 ONLY
-import adafruit_bme680
-#from adafruit_bme280 import basic as adafruit_bme280
+# BME680 ONLY
+#import adafruit_bme680
+#BME_CLK = board.GP18
+#BME_MOSI = board.GP19
+#BME_MISO = board.GP16
+#BME_OUT = board.GP17
+
+# BME280 ONLY
+from adafruit_bme280 import basic as adafruit_bme280
 BME_CLK = board.GP18
 BME_MOSI = board.GP19
 BME_MISO = board.GP16
@@ -349,8 +355,8 @@ class Sensors:
         self.temp_offset = conf.sensorTemperatureOffset
 
         try:
-            self.envSensorName = self.initBME680()
-            #self.envSensorName = self.initBME280()
+            self.envSensorName = self.initBME280()
+            #self.envSensorName = self.initBME680()
             #self.envSensorName = self.initMCP9808()
             self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
             print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
