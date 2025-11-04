@@ -400,8 +400,8 @@ class Sensors:
             else:
                 return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU raw'}
         try:
-            envSensor = self.getEnvDataBME680()
-            #envSensor = self.getEnvDataBME280()
+            envSensor = self.getEnvDataBME280()
+            #envSensor = self.getEnvDataBME680()
             #envSensor = self.getEnvDataMCP9808()
             t_envSensor = round(float(envSensor['temperature']) + self.temp_offset,1)
             rh_envSensor = round(float(envSensor['RH']),1)
