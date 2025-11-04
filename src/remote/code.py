@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.4.1
+# * v2025.11.4.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.4.1"
+version = "2025.11.4.2"
 
 import wifi
 import time
@@ -358,6 +358,7 @@ class Sensors:
             self.envSensorName = self.initBME280()
             #self.envSensorName = self.initBME680()
             #self.envSensorName = self.initMCP9808()
+            
             self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
             print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
         except Exception as e:
@@ -403,9 +404,14 @@ class Sensors:
             envSensor = self.getEnvDataBME280()
             #envSensor = self.getEnvDataBME680()
             #envSensor = self.getEnvDataMCP9808()
+            
             t_envSensor = round(float(envSensor['temperature']) + self.temp_offset,1)
             rh_envSensor = round(float(envSensor['RH']),1)
-            gas_envSensor = int(float(envSensor['gas']))
+            if envSensor['gas'] != "--":
+                gas_envSensor = int(float(envSensor['gas']))
+            else:
+                gas_envSensor = envSensor['gas']
+                
             delta_t = t_cpu - t_envSensor
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
