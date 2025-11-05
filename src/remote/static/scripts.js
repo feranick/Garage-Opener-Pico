@@ -183,7 +183,7 @@ async function fetchData() {
 // Logic when pushing Update Status button
 //////////////////////////////////////////////
 async function updateStatus() {
-    document.getElementById("Submit").value = "Door \n\n Loading...";
+    //document.getElementById("Submit").value = "Door \n\n Loading...";
     document.getElementById("Status").value = "Loading...";
     //document.getElementById("warnLabel").textContent = "Testing";
     
