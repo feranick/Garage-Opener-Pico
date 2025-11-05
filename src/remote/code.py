@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.4.2
+# * v2025.11.5.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.4.2"
+version = "2025.11.5.1"
 
 import wifi
 import time
@@ -23,31 +23,14 @@ from adafruit_httpserver import Server, MIMETypes, Response
 
 import adafruit_ntp
 
+from libSensors import SensorDevices
+
 DOOR_SIGNAL = board.GP22
 
 # HCSR04 - SONAR
 import adafruit_hcsr04
 SONAR_TRIGGER = board.GP15
 SONAR_ECHO = board.GP14
-
-# MCP9808 ONLY
-#import adafruit_mcp9808
-#MCP_I2C_SCL = board.GP17
-#MCP_I2C_SDA = board.GP16
-
-# BME680 ONLY
-#import adafruit_bme680
-#BME_CLK = board.GP18
-#BME_MOSI = board.GP19
-#BME_MISO = board.GP16
-#BME_OUT = board.GP17
-
-# BME280 ONLY
-from adafruit_bme280 import basic as adafruit_bme280
-BME_CLK = board.GP18
-BME_MOSI = board.GP19
-BME_MISO = board.GP16
-BME_OUT = board.GP17
 
 ############################
 # Initial WiFi/Safe Mode Check
@@ -75,25 +58,21 @@ if supervisor.runtime.safe_mode_reason is not None:
 ############################
 class Conf:
     def __init__(self):
-        self.triggerDistance = 20.0
-        self.sensorTemperatureOffset = 0
         try:
-            trig_dist_env = os.getenv("triggerDistance")
-            if trig_dist_env is not None:
-                self.triggerDistance = float(trig_dist_env)
-            else:
-                print("Warning: 'triggerDistance' not found in settings.toml. Using default.")
+            self.triggerDistance = float(os.getenv("triggerDistance"))
         except ValueError:
+            self.triggerDistance = 20.0
             print(f"Warning: Invalid triggerDistance '{trig_dist_env}' in settings.toml. Using default.")
 
         try:
-            temperature_offset = os.getenv("sensorTemperatureOffset")
-            if temperature_offset is not None:
-                self.sensorTemperatureOffset = float(temperature_offset)
-            else:
-                print("Warning: 'sensorTemperatureOffset' not found in settings.toml. Using default.")
+            self.sensor1 = os.getenv("sensor1")
+            self.sensor1Pins = stringToArray(os.getenv("sensor1Pins"))
+            self.sensor1CorrectTemp = os.getenv("sensor1CorrectTemp")
         except ValueError:
-            print(f"Warning: Invalid triggerDistance '{sensorTemperatureOffset}' in settings.toml. Using default.")
+            self.sensor1 = None
+            self.sensor1Pins = None
+            self.sensor1CorrectTemp = "False"
+            print(f"Warning: Invalid settings.toml. Using default.")
 
 ############################
 # Server
@@ -199,7 +178,7 @@ class GarageServer:
         def api_status(request):
             #state = self.sensors.checkStatusSonar()
             remoteData = self.getStatusRemoteSonar()
-            localData = self.sensors.getEnvData()
+            localData = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1Name, self.sensors.sensor1CorrectTemp)
 
             UTC = self.getUTC()
 
@@ -327,7 +306,7 @@ class GarageServer:
         microcontroller.reset()
 
 ############################
-# Control, Sensors
+# Control
 ############################
 class Control:
     def __init__(self):
@@ -341,90 +320,64 @@ class Control:
         self.btn.value = False
         time.sleep(1)
 
+############################
+# Sensors
+############################
 class Sensors:
     def __init__(self, conf):
-        self.sonar = None
-        self.envSensor = None
-        self.envSensorName = None
-        try:
-            self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
-        except Exception as e:
-            print(f"Failed to initialize HCSR04: {e}")
+        self.sensDev = SensorDevices()
+        self.envSensor1 = None
+        self.envSensor1Name = conf.sensor1
+        self.envSensor1Pins = conf.sensor1Pins
+        self.sensor1CorrectTemp = conf.sensor1CorrectTemp
+        
+        self.envSensor1 = self.sensDev.initSensor(conf.sensor1, conf.sensor1Pins)
 
-        self.trigDist = conf.triggerDistance
-        self.temp_offset = conf.sensorTemperatureOffset
-
-        try:
-            self.envSensorName = self.initBME280()
-            #self.envSensorName = self.initBME680()
-            #self.envSensorName = self.initMCP9808()
-            
-            self.avDeltaT = microcontroller.cpu.temperature - self.envSensor.temperature
-            print(f"Temperature sensor ({self.envSensorName}) found and initialized.")
-        except Exception as e:
+        if self.envSensor1 != None:
+            self.avDeltaT = microcontroller.cpu.temperature - self.envSensor1.temperature
+        else:
             self.avDeltaT = 0
-            print(f"Failed to initialize enironmental sensor: {e}")
+
         self.numTimes = 1
-
-    def initMCP9808(self):
-        i2c = busio.I2C(MCP_I2C_SCL, MCP_I2C_SDA)
-        self.envSensor = adafruit_mcp9808.MCP9808(i2c)
-        return "MCP9808"
-
-    def getEnvDataMCP9808(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': '--', 'gas': '--'}
-
-    def initBME280(self):
-        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME_OUT)
-        self.envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
-        return "BME280"
-
-    def getEnvDataBME280(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.relative_humidity), 'gas': '--'}
-
-    def initBME680(self):
-        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME_OUT)
-        self.envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
-        return "BME680"
-
-    def getEnvDataBME680(self):
-        return {'temperature': str(self.envSensor.temperature), 'RH': str(self.envSensor.humidity), 'gas': str(self.envSensor.gas)}
-
-    def getEnvData(self):
+        
+    def getEnvData(self, envSensor, envSensorName, correctTemp):
         t_cpu = microcontroller.cpu.temperature
-        if not self.envSensor:
-            print(f"{self.envSensorName} not initialized. Using CPU temp with estimated offset.")
+        if not envSensor:
+            print(f"{envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU adj.'}
             else:
                 return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU raw'}
         try:
-            envSensor = self.getEnvDataBME280()
-            #envSensor = self.getEnvDataBME680()
-            #envSensor = self.getEnvDataMCP9808()
-            
-            t_envSensor = round(float(envSensor['temperature']) + self.temp_offset,1)
-            rh_envSensor = round(float(envSensor['RH']),1)
-            if envSensor['gas'] != "--":
-                gas_envSensor = int(float(envSensor['gas']))
-            else:
-                gas_envSensor = envSensor['gas']
-                
-            delta_t = t_cpu - t_envSensor
+            envSensorData = self.sensDev.getSensorData(envSensor, envSensorName, correctTemp)
+            delta_t = t_cpu - float(envSensorData['temperature'])
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
             self.avDeltaT = (self.avDeltaT * self.numTimes + delta_t)/(self.numTimes+1)
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(0.5)
-            return {'temperature': f"{t_envSensor}", 'RH': f"{rh_envSensor}", 'gas': f"{gas_envSensor}", 'type': 'sensor'}
+            return envSensorData
         except:
             print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU adj'}
 
+############################
+# Utilities
+############################
+def stringToArray(string):
+    if string is not None:
+        number_strings = (
+        string.replace(" ", "")
+            .split(',')
+        )
+        array = [int(p) for p in number_strings]
+        return array
+    else:
+        print("Warning: Initial string-array not found in settings.toml")
+        return []
+        
 ############################
 # Main
 ############################
