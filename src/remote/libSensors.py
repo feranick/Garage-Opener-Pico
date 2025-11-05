@@ -32,7 +32,7 @@ class SensorDevices:
             print(f"Temperature sensor ({envSensorName}) found and initialized.")
             return envSensor
         except Exception as e:
-            print(f"Failed to initialize enironmental sensor: {e}")
+            print(f"Failed to initialize enironmental sensor ({envSensorName}): {e}")
 
     def initMCP9808(self, pins):
         import adafruit_mcp9808
