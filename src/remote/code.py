@@ -345,9 +345,9 @@ class Sensors:
         if not envSensor:
             print(f"{envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU adj.'}
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 'RH': '--', 'pressure': '--', 'gas': '--', 'type': 'CPU adj.'}
             else:
-                return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU raw'}
+                return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--', 'pressure': '--', 'gas': '--', 'type': 'CPU raw'}
         try:
             envSensorData = self.sensDev.getSensorData(envSensor, envSensorName, correctTemp)
             delta_t = t_cpu - float(envSensorData['temperature'])
@@ -359,9 +359,9 @@ class Sensors:
             time.sleep(0.5)
             return envSensorData
         except:
-            print(f"{self.envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
+            print(f"{envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 'RH': '--', 'gas': '--', 'type': 'CPU adj'}
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 'RH': '--', 'pressure': '--',  'gas': '--', 'type': 'CPU adj'}
 
 ############################
 # Utilities
