@@ -1,6 +1,6 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.5.1
+# * v2025.11.7.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
@@ -159,12 +159,12 @@ class SensorDevices:
         
     # Temperature correction for BME280
     def correctTempBME680(self, mt, mh):
-        C_INTERCEPT     = -22.378940
-        C_MT            = 3.497112
-        C_MH            = -0.267584
-        C_MT_P2         = -0.060241
-        C_MT_MH         = 0.000282
-        C_MH_P2         = 0.003162
+        C_INTERCEPT     = -27.800990
+        C_MT            = 2.686044
+        C_MH            = 0.577078
+        C_MT_P2         = -0.026907
+        C_MT_MH         = -0.018497
+        C_MH_P2         = -0.003123
         
         rt_pred = C_INTERCEPT + \
                   (C_MT * mt) + \
