@@ -58,7 +58,7 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'type': 'sensor',
-                'libSensor_version': version}
+                'libSensors_version': version}
         
     def initBME280(self, pins):
         from adafruit_bme280 import basic as adafruit_bme280
@@ -83,7 +83,7 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'type': 'sensor',
-                'libSensor_version': version}
+                'libSensors_version': version}
 
     def initBME680(self, pins):
         import adafruit_bme680
@@ -111,7 +111,7 @@ class SensorDevices:
                 'gas': f"{gas_envSensor}",
                 'aqi': f"{aqi_envSensor}",
                 'type': 'sensor',
-                'libSensor_version': version}
+                'libSensors_version': version}
         
     def initMAX31865(self, pins):
         import adafruit_max31865
@@ -134,7 +134,7 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'type': 'sensor',
-                'libSensor_version': version}
+                'libSensors_version': version}
 
     def getData(self, envSensor, envSensorName, correctTemp):
         t_cpu = microcontroller.cpu.temperature
@@ -147,7 +147,7 @@ class SensorDevices:
                         'gas': '--',
                         'aqi': '--',
                         'type': 'CPU adj.',
-                        'libSensor_version': version}
+                        'libSensors_version': version}
             else:
                 return {'temperature': f"{round(t_cpu, 1)} ",
                         'RH': '--',
@@ -155,7 +155,7 @@ class SensorDevices:
                         'gas': '--',
                         'aqi': '--',
                         'type': 'CPU raw',
-                        'libSensor_version': version}
+                        'libSensors_version': version}
         try:
             envSensorData = self.getSensorData(envSensor, envSensorName, correctTemp)
             delta_t = t_cpu - float(envSensorData['temperature'])
@@ -176,7 +176,7 @@ class SensorDevices:
                     'gas': '--',
                     'aqi': '--',
                     'type': 'CPU adj',
-                    'libSensor_version': version}
+                    'libSensors_version': version}
 
     def getSensorData(self, envSensor, envSensorName, correctTemp):
         if envSensorName == "MCP9808":
