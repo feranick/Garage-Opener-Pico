@@ -214,16 +214,14 @@ async function updateStatus() {
     //enable only for BME680
     /*
     if(data.locGas !== "--") {
-        document.getElementById('locGas').style.display = 'block';
-        document.getElementById('locGas_label').style.display = 'block';
-        document.getElementById('locGas_units').style.display = 'block';
-        document.getElementById("locGas").textContent = data.locGas;
-        document.getElementById("locGas").style.color = getVocColor(data.locGas);
+        document.getElementById('locAQI').style.display = 'block';
+        document.getElementById('locAQI_label').style.display = 'block';
+        document.getElementById("locAQI").textContent = data.locGas;
+        document.getElementById("locAQI").style.color = getIndoorAQIColor(data.locAQI);
         }
     else {
-        document.getElementById('locGas').style.display = 'none';
-        document.getElementById('locGas_label').style.display = 'none';
-        document.getElementById('locGas_units').style.display = 'none';
+        document.getElementById('locAQI').style.display = 'none';
+        document.getElementById('locAQI_label').style.display = 'none';
         }
     */
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
@@ -401,18 +399,18 @@ const uvColorRanges = [
     { min: 10.5, max: 1e8, color: "purple" }
 ];
 
-function getVocColor(value) {
-    if (value >= 1e5 && value <= 1e10) {
+function getIndoorAQIColor(value) {
+    if (value >= 0 && value <= 50) {
         return "green";
-    } else if (value >= 7.5e4 && value < 1e5) {
+    } else if (value >= 51 && value < 100) {
         return "yellow";
-    } else if (value >= 5e4 && value < 7.5e4) {
+    } else if (value >= 101 && value < 150) {
         return "orange";
-    } else if (value >= 2.5e4 && value < 5e4) {
+    } else if (value >= 151 && value < 200) {
         return "red";
-    } else if (value >= 1e4 && value < 2.5e4) {
+    } else if (value >= 201 && value < 300) {
         return "brown";
-    } else if (value >= 0 && value < 1e4) {
+    } else if (value >= 301 && value < 1e3) {
         return "purple";
     } else {
         return "black";
