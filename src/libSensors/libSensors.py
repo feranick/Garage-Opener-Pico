@@ -1,6 +1,6 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.7.3
+# * v2025.11.7.4
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
@@ -248,6 +248,6 @@ class SensorDevices:
         
         SG = SG_max * ((math.log10(R_gas)-math.log10(R_min))/(math.log10(R_max)-math.log10(R_min)))
         SH = SH_max = 80 * (1 - (abs(RH - SH_opt))/SH_range)
-        AQI = SG + SH
+        AQI = int(SG + SH)
         return AQI
         
