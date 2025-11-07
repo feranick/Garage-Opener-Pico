@@ -1,6 +1,6 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.7.1
+# * v2025.11.7.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
@@ -9,9 +9,10 @@ import busio
 import board
 import digitalio
 import microcontroller
+import math
 
 ############################
-# Control, Sensors
+# Sensors
 ############################
 class SensorDevices:
     def __init__(self):
@@ -47,7 +48,10 @@ class SensorDevices:
         if correctTemp.lower() == 'true':
             t_envSensor = self.correctTempMCP9808(t_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}", 'RH': "--", 'pressure': "--", 'gas': '--', 'type': 'sensor'}
-
+        
+    ##############################################
+    # Sensors: Initialization and Data collection
+    ##############################################
     def initBME280(self, pins):
         from adafruit_bme280 import basic as adafruit_bme280
         BME_CLK = getattr(board, "GP" + str(pins[0]))
@@ -138,7 +142,10 @@ class SensorDevices:
         elif envSensorName == "MAX31865":
             sensorData = self.getEnvDataMAX31865(envSensor, correctTemp)
         return sensorData
-        
+     
+    ##############################################
+    # Sensors: Temperature Calibration
+    ##############################################
     # Temperature correction for BME280
     def correctTempBME280(self, mt, mh):
         C_INTERCEPT     = -22.378940
@@ -157,7 +164,7 @@ class SensorDevices:
                   
         return rt_pred
         
-    # Temperature correction for BME280
+    # Temperature correction for BME680
     def correctTempBME680(self, mt, mh):
         C_INTERCEPT     = -27.800990
         C_MT            = 2.686044
@@ -181,4 +188,21 @@ class SensorDevices:
     # Temperature correction for MAX31865
     def correctTempMax31865(self, mt):
         return mt
-
+        
+    ##############################################
+    # Sensors: AQI score estimator
+    ##############################################
+    def getAQIBME680(self, RH, R_gas):
+        R_min = 750 # This is the saturation value in Ohm
+        R_max = 7.5e-5  # This is the baseline that needs to be measured in clean air
+        SG_max = 100
+        SH_max = 80
+        SH_opt = 40
+        SH_range = 40
+        
+        SG = SG_max * ((math.log10(R_gas)-math.log10(R_min))/(math.log10(R_max)-math.log10(R_min)))
+        SH = SH_max = 80 * (1 - (abs(RH - SH_opt))/SH_range)
+        AQI = SG + SH
+        
+        return AQI
+        
