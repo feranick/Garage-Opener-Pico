@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.9.1
+# * v2025.11.9.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.9.1"
+libSensors_version = "2025.11.9.2"
 
 import time
 import busio
@@ -101,9 +101,9 @@ class SensorDevices:
         t_envSensor = float(envSensor.temperature)
         rh_envSensor = float(envSensor.humidity)
         p_envSensor = int(float(envSensor.pressure))
-        gas_envSensor = int(self.envSensor.gas)
+        gas_envSensor = int(envSensor.gas)
         
-        if self.correctTemp.lower() == 'true':
+        if correctTemp.lower() == 'true':
             t_envSensor = self.correctTempBME680(t_envSensor,rh_envSensor)
         aqi_envSensor = self.getAQIBME680(rh_envSensor, gas_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
@@ -247,8 +247,21 @@ class SensorDevices:
         SH_opt = 40
         SH_range = 40
         
-        SG = SG_max * ((math.log10(R_gas)-math.log10(R_min))/(math.log10(R_max)-math.log10(R_min)))
+        SG = SG_max * ((log10(R_gas)-log10(R_min))/(log10(R_max)-log10(R_min)))
         SH = SH_max = 80 * (1 - (abs(RH - SH_opt))/SH_range)
         AQI = int(SG + SH)
         return AQI
+
+##############################################
+# Math Utilities
+##############################################
+def log10(x):
+    try:
+        # for board with math processor (RP2350)
+        log10 = math.log10(x)
+    except:
+        # for board without math processor (RP2040)
+        log10 = math.log(x) / math.log(10)
+    return log10
+        
         
