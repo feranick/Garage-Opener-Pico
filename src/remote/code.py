@@ -291,7 +291,7 @@ class GarageServer:
 
     def setup_ntp(self):
         try:
-            self.ntp = adafruit_ntp.NTP(socketpool.SocketPool(wifi.radio), tz_offset=-5)
+            self.ntp = adafruit_ntp.NTP(socketpool.SocketPool(wifi.radio), tz_offset=0)
         except Exception as e:
             print(f"Failed to setup NTP: {e}")
 
