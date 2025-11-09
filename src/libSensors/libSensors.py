@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.8.1
+# * v2025.11.9.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.8.1"
+libSensors_version = "2025.11.9.1"
 
 import time
 import busio
@@ -84,7 +84,7 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'type': 'sensor',
-                'libSensors_version': version}
+                'libSensors_version': self.version}
 
     def initBME680(self, pins):
         import adafruit_bme680
@@ -112,7 +112,7 @@ class SensorDevices:
                 'gas': f"{gas_envSensor}",
                 'aqi': f"{aqi_envSensor}",
                 'type': 'sensor',
-                'libSensors_version': version}
+                'libSensors_version': self.version}
         
     def initMAX31865(self, pins):
         import adafruit_max31865
@@ -135,7 +135,7 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'type': 'sensor',
-                'libSensors_version': version}
+                'libSensors_version': self.version}
 
     def getData(self, envSensor, envSensorName, correctTemp):
         t_cpu = microcontroller.cpu.temperature
@@ -156,7 +156,7 @@ class SensorDevices:
                         'gas': '--',
                         'aqi': '--',
                         'type': 'CPU raw',
-                        'libSensors_version': version}
+                        'libSensors_version': self.version}
         try:
             envSensorData = self.getSensorData(envSensor, envSensorName, correctTemp)
             delta_t = t_cpu - float(envSensorData['temperature'])
@@ -177,7 +177,7 @@ class SensorDevices:
                     'gas': '--',
                     'aqi': '--',
                     'type': 'CPU adj',
-                    'libSensors_version': version}
+                    'libSensors_version': self.version}
 
     def getSensorData(self, envSensor, envSensorName, correctTemp):
         if envSensorName == "MCP9808":
