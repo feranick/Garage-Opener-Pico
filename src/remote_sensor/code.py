@@ -1,7 +1,7 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Environmental and remote sonar only
-# * v2025.11.7.1
+# * v2025.11.8.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
@@ -148,6 +148,7 @@ class GarageServer:
                 "RH": envData['RH'],
                 "pressure": envData['pressure'],
                 "type": envData['type'],
+                "libSensors_version": self.sensors.sensDev.version,
             }
             json_content = json.dumps(data_dict)
 

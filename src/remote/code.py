@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.7.1
+# * v2025.11.8.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.7.1"
+version = "2025.11.8.1"
 
 import wifi
 import time
@@ -192,6 +192,7 @@ class GarageServer:
                 "remoteRH": remoteData['RH'],
                 "remoteSens": remoteData['type'],
                 "remoteURL" : self.sonarURL,
+                "libSensors_version": self.sensors.sensDev.version,
                 "ip": self.ip,
                 "ow_api_key": self.ow_api_key,
                 "station": self.station,

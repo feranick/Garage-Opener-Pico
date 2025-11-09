@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.7.4
+# * v2025.11.8.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.7.3"
+libSensors_version = "2025.11.8.1"
 
 import time
 import busio
@@ -18,6 +18,7 @@ import math
 ############################
 class SensorDevices:
     def __init__(self):
+        self.version = libSensors_version
         pass
 
     def initSensor(self, envSensorName, pins):
@@ -58,7 +59,7 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'type': 'sensor',
-                'libSensors_version': version}
+                'libSensors_version': libSensors_version}
         
     def initBME280(self, pins):
         from adafruit_bme280 import basic as adafruit_bme280
