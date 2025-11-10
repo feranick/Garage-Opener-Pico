@@ -287,12 +287,11 @@ class SensorDevices:
     # Sensors: AQI score estimator
     ##############################################
     def getIAQBME680(self, RH, R_gas):
-    
         S_max = 400
     
         SG_max = 0.75 * S_max
         R_min = 750 # This is the saturation value in Ohm
-        R_max = 60000  # This is the baseline that needs to be measured in clean air
+        R_max = 80000  # This is the baseline that needs to be measured in clean air
         SG = SG_max * ((log10(R_gas)-log10(R_min))/(log10(R_max)-log10(R_min)))
          
         SH_max = 0.25 * S_max
