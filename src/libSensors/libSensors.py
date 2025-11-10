@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.9.2
+# * v2025.11.9.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.9.2"
+libSensors_version = "2025.11.9.3"
 
 import time
 import busio
@@ -58,6 +58,7 @@ class SensorDevices:
                 'pressure': "--",
                 'gas': '--',
                 'aqi': '--',
+                'HI': '--',
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
         
@@ -83,6 +84,7 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': '--',
                 'aqi': '--',
+                'HI': self.calctHI(t_envSensor,rh_envSensor),
                 'type': 'sensor',
                 'libSensors_version': self.version}
 
@@ -111,6 +113,7 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': f"{gas_envSensor}",
                 'aqi': f"{aqi_envSensor}",
+                'HI': self.calctHI(t_envSensor,rh_envSensor),
                 'type': 'sensor',
                 'libSensors_version': self.version}
         
@@ -134,6 +137,7 @@ class SensorDevices:
                 'pressure': "--",
                 'gas': '--',
                 'aqi': '--',
+                'HI': '--',
                 'type': 'sensor',
                 'libSensors_version': self.version}
 
@@ -147,6 +151,7 @@ class SensorDevices:
                         'pressure': '--',
                         'gas': '--',
                         'aqi': '--',
+                        'HI': '--',
                         'type': 'CPU adj.',
                         'libSensors_version': version}
             else:
@@ -155,6 +160,7 @@ class SensorDevices:
                         'pressure': '--',
                         'gas': '--',
                         'aqi': '--',
+                        'HI': '--',
                         'type': 'CPU raw',
                         'libSensors_version': self.version}
         try:
@@ -176,6 +182,7 @@ class SensorDevices:
                     'pressure': '--',
                     'gas': '--',
                     'aqi': '--',
+                    'HI': '--',
                     'type': 'CPU adj',
                     'libSensors_version': self.version}
 
@@ -189,7 +196,40 @@ class SensorDevices:
         elif envSensorName == "MAX31865":
             sensorData = self.getEnvDataMAX31865(envSensor, correctTemp)
         return sensorData
-     
+    
+    ##############################################
+    # Sensors: Heat Index
+    ##############################################
+    # Caluclulate heat index
+    def calctHI(self, t, rh):
+        tf = t*9/5 + 32
+        
+        if tf >= 80:
+            c1 = -42.379
+            c2 = 2.04901523
+            c3 = 10.14333127
+            c4 = -0.22475541
+            c5 = -0.00683783
+            c6 = -0.05481717
+            c7 = 0.00122874
+            c8 = 0.00085282
+            c9 = -0.00000199
+            
+            hi = c1 + \
+                c2 * tf + \
+                c3 * rh + \
+                c4 * tf * rh + \
+                c5 * (tf**2) + \
+                c6 * (rh**2) + \
+                c7 * (tf**2) * rh + \
+                c8 * (rh**2) * tf + \
+                c7 * (tf**2) * (rh**2)
+                
+        else:
+            hi = 0.5 * (tf + 61 + \
+                ((tf-68) * 1.2) + (rh * 0.094))
+        return round((hi - 32) * 5/9 , 1)
+    
     ##############################################
     # Sensors: Temperature Calibration
     ##############################################
@@ -241,7 +281,7 @@ class SensorDevices:
     ##############################################
     def getAQIBME680(self, RH, R_gas):
         R_min = 750 # This is the saturation value in Ohm
-        R_max = 7.5e-5  # This is the baseline that needs to be measured in clean air
+        R_max = 60000  # This is the baseline that needs to be measured in clean air
         SG_max = 100
         SH_max = 80
         SH_opt = 40
