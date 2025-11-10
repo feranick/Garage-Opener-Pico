@@ -148,7 +148,7 @@ class GarageServer:
                 "RH": envData['RH'],
                 "pressure": envData['pressure'],
                 "HI": envData['HI'],
-                "gas": localData['gas'],
+                "gas": envData['gas'],
                 "type": envData['type'],
                 "libSensors_version": self.sensors.sensDev.version,
             }
