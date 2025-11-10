@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.9.1
+# * v2025.11.10.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.9.1"
+version = "2025.11.10.1"
 
 import wifi
 import time
@@ -186,8 +186,9 @@ class GarageServer:
                 "state": remoteData['state'],
                 "locTemp": localData['temperature'],
                 "locRH": localData['RH'],
-                "locGas": localData['gas'],
                 "locHI": localData['HI'],
+                "locGas": localData['gas'],
+                "locIAQ": localData['IAQ'],
                 "locSens": localData['type'],
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
@@ -347,9 +348,21 @@ class Sensors:
         if not envSensor:
             print(f"{envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 'RH': '--', 'pressure': '--', 'gas': '--', 'HI': '--', 'type': 'CPU adj.'}
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 
+                    'RH': '--', 
+                    'pressure': '--', 
+                    'gas': '--',
+                    'IAQ': '--', 
+                    'HI': '--', 
+                    'type': 'CPU adj.'}
             else:
-                return {'temperature': f"{round(t_cpu, 1)}", 'RH': '--', 'pressure': '--', 'gas': '--', 'HI': '--','type': 'CPU raw'}
+                return {'temperature': f"{round(t_cpu, 1)}", 
+                    'RH': '--', 
+                    'pressure': '--', 
+                    'gas': '--',
+                    'IAQ': '--',  
+                    'HI': '--', 
+                    'type': 'CPU raw'}
         try:
             envSensorData = self.sensDev.getSensorData(envSensor, envSensorName, correctTemp)
             delta_t = t_cpu - float(envSensorData['temperature'])
@@ -363,7 +376,13 @@ class Sensors:
         except:
             print(f"{envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 'RH': '--', 'pressure': '--',  'gas': '--', 'HI': '--', 'type': 'CPU adj'}
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 
+                    'RH': '--', 
+                    'pressure': '--',  
+                    'gas': '--',
+                    'IAQ': '--',  
+                    'HI': '--', 
+                    'type': 'CPU adj'}
 
 ############################
 # Utilities

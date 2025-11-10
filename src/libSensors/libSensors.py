@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.10.1
+# * v2025.11.10.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.10.1"
+libSensors_version = "2025.11.10.2"
 
 import time
 import busio
@@ -57,7 +57,7 @@ class SensorDevices:
                 'RH': "--",
                 'pressure': "--",
                 'gas': '--',
-                'aqi': '--',
+                'IAQ': '--',
                 'HI': '--',
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
@@ -83,7 +83,7 @@ class SensorDevices:
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': f"{p_envSensor}",
                 'gas': '--',
-                'aqi': '--',
+                'IAQ': '--',
                 'HI': self.calctHI(t_envSensor,rh_envSensor),
                 'type': 'sensor',
                 'libSensors_version': self.version}
@@ -107,12 +107,12 @@ class SensorDevices:
         
         if correctTemp.lower() == 'true':
             t_envSensor = self.correctTempBME680(t_envSensor,rh_envSensor)
-        aqi_envSensor = self.getAQIBME680(rh_envSensor, gas_envSensor)
+        aqi_envSensor = self.getIAQBME680(rh_envSensor, gas_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor,1)}",
                 'pressure': f"{p_envSensor}",
                 'gas': f"{gas_envSensor}",
-                'aqi': f"{aqi_envSensor}",
+                'IAQ': f"{aqi_envSensor}",
                 'HI': self.calctHI(t_envSensor,rh_envSensor),
                 'type': 'sensor',
                 'libSensors_version': self.version}
@@ -137,7 +137,7 @@ class SensorDevices:
                 'pressure': "--",
                 'gas': '--',
                 'aqi': '--',
-                'HI': '--',
+                'IAQ': '--',
                 'type': 'sensor',
                 'libSensors_version': self.version}
 
@@ -151,7 +151,7 @@ class SensorDevices:
                         'pressure': '--',
                         'gas': '--',
                         'aqi': '--',
-                        'HI': '--',
+                        'IAQ': '--',
                         'type': 'CPU adj.',
                         'libSensors_version': version}
             else:
@@ -159,7 +159,7 @@ class SensorDevices:
                         'RH': '--',
                         'pressure': '--',
                         'gas': '--',
-                        'aqi': '--',
+                        'IAQ': '--',
                         'HI': '--',
                         'type': 'CPU raw',
                         'libSensors_version': self.version}
@@ -172,7 +172,6 @@ class SensorDevices:
             self.numTimes += 1
             print(f"Av. CPU/MCP T diff: {self.avDeltaT} {self.numTimes}")
             time.sleep(0.5)
-            #return {'temperature': f"{round(t_envSensor,1)}", 'RH': f"{rh_envSensor}", 'pressure': f"{p_envSensor}", 'type': 'sensor'}
             return envSensorData
         except:
             print(f"{envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
@@ -181,7 +180,7 @@ class SensorDevices:
                     'RH': '--',
                     'pressure': '--',
                     'gas': '--',
-                    'aqi': '--',
+                    'IAQ': '--',
                     'HI': '--',
                     'type': 'CPU adj',
                     'libSensors_version': self.version}
@@ -287,18 +286,23 @@ class SensorDevices:
     ##############################################
     # Sensors: AQI score estimator
     ##############################################
-    def getAQIBME680(self, RH, R_gas):
+    def getIAQBME680(self, RH, R_gas):
+    
+        S_max = 400
+    
+        SG_max = 0.75 * S_max
         R_min = 750 # This is the saturation value in Ohm
         R_max = 60000  # This is the baseline that needs to be measured in clean air
-        SG_max = 100
-        SH_max = 80
-        SH_opt = 40
-        SH_range = 40
-        
         SG = SG_max * ((log10(R_gas)-log10(R_min))/(log10(R_max)-log10(R_min)))
-        SH = SH_max = 80 * (1 - (abs(RH - SH_opt))/SH_range)
-        AQI = int(SG + SH)
-        return AQI
+         
+        SH_max = 0.25 * S_max
+        SH_opt = 40
+        SH_range = 60
+        SH = SH_max * (1 - (abs(RH - SH_opt))/SH_range)
+        
+        # We are using the reversed scale 0 -> 100
+        IAQ = int(S_max-(SG + SH))
+        return IAQ
 
 ##############################################
 # Math Utilities

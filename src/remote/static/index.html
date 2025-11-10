@@ -39,6 +39,10 @@ body {
 #Status:hover, #Submit:hover { background-color: #1e62a0; }
 #Submit { height: 150px; background-color: orange; }
 
+#locIAQ, #locIAQ_label, #locGas, #locGas_label {
+    display: none;
+    }
+
 fieldset {
     background-color: #C0C0C0;
     color: black;
@@ -77,6 +81,7 @@ fieldset {
             <br>RH:
             <br>HI:
             <br>WB T:
+            <label id="locIAQ_label">IAQ: </label>
         </div>
         <div class="column">
             <br>
@@ -84,6 +89,7 @@ fieldset {
             <br><span id="locRH">...</span>
             <br><span id="locHI">...</span>
             <br><span id="locWBT">...</span>
+            <br><span id="locIAQ">...</span>
         </div>
         <div class="column">
             <strong>Garage</strong>
@@ -100,6 +106,8 @@ fieldset {
             <br><span id="remoteWBT">...</span>
         </div>
     </div>
+    <label id="locGas_label">Gas Res: </label>
+    <span id="locGas">...</span>
 </fieldset>
 
 <form name="submitForm">
@@ -147,9 +155,6 @@ PM2.5: <span id="ext_pm2_5">...</span>
 <br>Dust: <span id="ext_dust">...</span>
 </div>
 </div>
-<!-- Gas sensor is only available on the BME680-->
-<!--<small><br><label id="locAQI_label">Indoor AQI: </label>
-<span id="locAQI">...</span></small>-->
 </fieldset>
 
 <small><small>Device IP: <span id="ip_address">N/A</span></small></small>

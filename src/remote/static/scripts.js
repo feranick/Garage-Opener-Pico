@@ -209,23 +209,20 @@ async function updateStatus() {
     document.getElementById("locRH").textContent = data.locRH + "%";
     document.getElementById("remoteRH").textContent = data.remoteRH + "%";
     document.getElementById("locHI").textContent = data.locHI + " \u00B0C";
-    document.getElementById("remoteHI").textContent = data.remoteHI + " \u00B0C";
+    //document.getElementById("remoteHI").textContent = data.remoteHI + " \u00B0C";
     document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";
     document.getElementById("remoteWBT").textContent = getWetBulbTemp(data.remoteTemp, data.remoteRH, data.remoteSens) + " \u00B0C";
     
-    //enable only for BME680
-    /*
     if(data.locGas !== "--") {
-        document.getElementById('locAQI').style.display = 'block';
-        document.getElementById('locAQI_label').style.display = 'block';
-        document.getElementById("locAQI").textContent = data.locGas;
-        document.getElementById("locAQI").style.color = getIndoorAQIColor(data.locAQI);
+        document.getElementById('locIAQ').style.display = 'block';
+        document.getElementById('locIAQ_label').style.display = 'block';
+        document.getElementById("locIAQ").textContent = data.locIAQ;
+        document.getElementById("locIAQ").style.color = getIAQColor(data.locIAQ);
+        document.getElementById('locGas').style.display = 'block';
+        document.getElementById('locGas_label').style.display = 'block';
+        document.getElementById("locGas").textContent = data.locGas;
         }
-    else {
-        document.getElementById('locAQI').style.display = 'none';
-        document.getElementById('locAQI_label').style.display = 'none';
-        }
-    */
+    
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
     
     document.getElementById("ext_temperature").textContent = nws.temperature+" \u00b0C";
@@ -401,7 +398,7 @@ const uvColorRanges = [
     { min: 10.5, max: 1e8, color: "purple" }
 ];
 
-function getIndoorAQIColor(value) {
+function getIAQColor(value) {
     if (value >= 0 && value <= 50) {
         return "green";
     } else if (value >= 51 && value < 100) {
@@ -412,7 +409,7 @@ function getIndoorAQIColor(value) {
         return "red";
     } else if (value >= 201 && value < 300) {
         return "brown";
-    } else if (value >= 301 && value < 1e3) {
+    } else if (value >= 301 && value < 1e6) {
         return "purple";
     } else {
         return "black";
@@ -429,7 +426,6 @@ function doorColor(state) {
     }
 }
         
-
 /**
  * Converts a numerical weather code into a descriptive weather string.
  * This is based on the WMO (World Meteorological Organization) weather codes.
