@@ -192,6 +192,7 @@ class GarageServer:
                 "locSens": localData['type'],
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
+                "remoteHI": remoteData['HI'],
                 "remoteSens": remoteData['type'],
                 "remoteURL" : self.sonarURL,
                 "libSensors_version": self.sensors.sensDev.version,

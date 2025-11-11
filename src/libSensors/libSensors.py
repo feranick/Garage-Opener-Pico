@@ -84,7 +84,7 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': '--',
                 'IAQ': '--',
-                'HI': self.calctHI(t_envSensor,rh_envSensor),
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
                 'type': 'sensor',
                 'libSensors_version': self.version}
 
@@ -113,7 +113,7 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': f"{gas_envSensor}",
                 'IAQ': f"{aqi_envSensor}",
-                'HI': self.calctHI(t_envSensor,rh_envSensor),
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
                 'type': 'sensor',
                 'libSensors_version': self.version}
         
