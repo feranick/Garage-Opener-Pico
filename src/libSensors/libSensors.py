@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.12.2
+# * v2025.11.12.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.12.2"
+libSensors_version = "2025.11.12.3"
 
 import time
 import busio
@@ -157,12 +157,12 @@ class SensorDevices:
                 
     # Temperature correction for BME680
     def correctTempBME680(self, mt, mh):
-        C_INTERCEPT     = -25.973164
-        C_MT            = -0.108390
-        C_MH            = 3.889541
-        C_MT_P2         = 0.002338
-        C_MT_MH         = -0.005908
-        C_MH_P2         = -0.068609
+        C_INTERCEPT     = -27.800990
+        C_MT            = 2.686044
+        C_MH            = 0.577078
+        C_MT_P2         = -0.026907
+        C_MT_MH         = -0.018497
+        C_MH_P2         = -0.003123
         
         rt_pred = C_INTERCEPT + \
                   (C_MT * mt) + \
