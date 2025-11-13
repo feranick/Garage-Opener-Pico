@@ -92,6 +92,13 @@ class SensorDevices:
         spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
         cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_max31865.MAX31865(spi, cs)
+        
+        # MAX8165 auto-conversion needs to be True, 
+        # for continuous measurements (50-60Hz), 
+        # otherwise off to redece selfheating.
+        #envSensor.auto_convert = True
+        print("MAX31865 Auto-Conversion is:",envSensor.auto_convert)
+        
         return envSensor
         
     def getEnvDataMAX31865(self, envSensor, correctTemp):
