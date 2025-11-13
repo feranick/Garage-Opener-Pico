@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.13.1
+# * v2025.11.13.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.13.1"
+libSensors_version = "2025.11.13.3"
 
 import time
 import busio
@@ -25,8 +25,8 @@ class SensorDevices:
         try:
             if envSensorName == "MCP9808":
                 envSensor = self.initMCP9808(pins)
-            elif envSensorName == "AHT21":
-                envSensor = self.initAHT21(pins)
+            elif envSensorName == "MAX31865":
+                envSensor = self.initMAX31865(pins)
             elif envSensorName == "BME280":
                 envSensor = self.initBME280(pins)
             elif envSensorName == "BME680":
@@ -37,8 +37,8 @@ class SensorDevices:
                 envSensor = self.initBMP3XX(pins)
             elif envSensorName == "BMP5XX":
                 envSensor = self.initBMP5XX(pins)
-            elif envSensorName == "MAX31865":
-                envSensor = self.initMAX31865(pins)
+            elif envSensorName == "AHT21":
+                envSensor = self.initAHT21(pins)
             elif envSensorName == "ENS160_AHT21":
                 envSensor = self.initENS160_AHT21(pins)
             else:
@@ -78,6 +78,251 @@ class SensorDevices:
                 
     # Generic Temperature correction for MCP9808
     def correctTempMCP9808(self, mt):
+        return mt
+        
+    ##############################################
+    # MAX31865
+    ##############################################
+    def initMAX31865(self, pins):
+        import adafruit_max31865
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        cs = digitalio.DigitalInOut(OUT)
+        envSensor = adafruit_max31865.MAX31865(spi, cs)
+        return envSensor
+        
+    def getEnvDataMAX31865(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempMAX31865(t_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': "--",
+                'pressure': "--",
+                'gas': '--',
+                'aqi': '--',
+                'IAQ': '--',
+                'HI': '--',
+                'type': 'sensor',
+                'libSensors_version': self.version}
+                
+    # Temperature correction for MAX31865
+    def correctTempMax31865(self, mt):
+        return mt
+                
+    ##############################################
+    # BME280
+    ##############################################
+    def initBME280(self, pins):
+        from adafruit_bme280 import basic as adafruit_bme280
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        cs = digitalio.DigitalInOut(OUT)
+        envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs)
+        return envSensor
+
+    def getEnvDataBME280(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.humidity)
+        p_envSensor = int(float(envSensor.pressure))
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempBME280(t_envSensor,rh_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': f"{round(rh_envSensor, 1)}",
+                'pressure': f"{p_envSensor}",
+                'gas': '--',
+                'IAQ': '--',
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
+                'type': 'sensor',
+                'libSensors_version': self.version}
+                
+    # Temperature correction for BME280
+    def correctTempBME280(self, mt, mh):
+        C_INTERCEPT     = -22.378940
+        C_MT            = 3.497112
+        C_MH            = -0.267584
+        C_MT_P2         = -0.060241
+        C_MT_MH         = 0.000282
+        C_MH_P2         = 0.003162
+        
+        rt_pred = C_INTERCEPT + \
+                  (C_MT * mt) + \
+                  (C_MH * mh) + \
+                  (C_MT_P2 * (mt**2)) + \
+                  (C_MT_MH * (mt * mh)) + \
+                  (C_MH_P2 * (mh**2))
+                  
+        return rt_pred
+                
+    ##############################################
+    # BME680
+    ##############################################
+    def initBME680(self, pins):
+        import adafruit_bme680
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        cs = digitalio.DigitalInOut(OUT)
+        envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, cs)
+        return envSensor
+        
+    def getEnvDataBME680(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.humidity)
+        p_envSensor = int(float(envSensor.pressure))
+        gas_envSensor = int(envSensor.gas)
+        
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempBME680(t_envSensor,rh_envSensor)
+        aqi_envSensor = self.getIAQBME680(rh_envSensor, gas_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': f"{round(rh_envSensor,1)}",
+                'pressure': f"{p_envSensor}",
+                'gas': f"{gas_envSensor}",
+                'IAQ': f"{aqi_envSensor}",
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
+                'type': 'sensor',
+                'libSensors_version': self.version}
+                
+    # Temperature correction for BME680
+    def correctTempBME680(self, mt, mh):
+        C_INTERCEPT     = -27.800990
+        C_MT            = 2.686044
+        C_MH            = 0.577078
+        C_MT_P2         = -0.026907
+        C_MT_MH         = -0.018497
+        C_MH_P2         = -0.003123
+        
+        rt_pred = C_INTERCEPT + \
+                  (C_MT * mt) + \
+                  (C_MH * mh) + \
+                  (C_MT_P2 * (mt**2)) + \
+                  (C_MT_MH * (mt * mh)) + \
+                  (C_MH_P2 * (mh**2))
+        return rt_pred
+    
+    # IAQ estimator for BME680
+    def getIAQBME680(self, RH, R_gas):
+        S_max = 400
+    
+        SG_max = 0.75 * S_max
+        R_min = 750 # This is the saturation value in Ohm
+        R_max = 80000  # This is the baseline that needs to be measured in clean air
+        SG = SG_max * ((log10(R_gas)-log10(R_min))/(log10(R_max)-log10(R_min)))
+         
+        SH_max = 0.25 * S_max
+        SH_opt = 40
+        SH_range = 60
+        SH = SH_max * (1 - (abs(RH - SH_opt))/SH_range)
+        
+        # We are using the reversed scale 0 -> 100
+        IAQ = int(S_max-(SG + SH))
+        return IAQ
+        
+    ##############################################
+    # BMP280
+    ##############################################
+    def initBMP280(self, pins):
+        import adafruit_bmp280
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        cs = digitalio.DigitalInOut(OUT)
+        envSensor = adafruit_bmp280.Adafruit_BMP280_SPI(spi, cs)
+        return envSensor
+
+    def getEnvDataBMP280(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.humidity)
+        p_envSensor = int(float(envSensor.pressure))
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempBMP280(t_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': '--',
+                'pressure': f"{p_envSensor}",
+                'gas': '--',
+                'IAQ': '--',
+                'HI': '--',
+                'type': 'sensor',
+                'libSensors_version': self.version}
+                
+    # Temperature correction for BMP280
+    def correctTempBMP280(self, mt):
+        return mt
+                
+    ##############################################
+    # BMP3XX
+    ##############################################
+    def initBMP3XX(self, pins):
+        import adafruit_bmp3xx
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        cs = digitalio.DigitalInOut(OUT)
+        envSensor = adafruit_bmp3xx.Adafruit_BMP3XX_SPI(spi, cs)
+        return envSensor
+
+    def getEnvDataBMP3XX(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.humidity)
+        p_envSensor = int(float(envSensor.pressure))
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempBMP3XX(t_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': '--',
+                'pressure': f"{p_envSensor}",
+                'gas': '--',
+                'IAQ': '--',
+                'HI': '--',
+                'type': 'sensor',
+                'libSensors_version': self.version}
+                
+    # Temperature correction for BMP3XX
+    def correctTempBMP3XX(self, mt):
+        return mt
+    
+    ##############################################
+    # BMP5XX
+    ##############################################
+    def initBMP5XX(self, pins):
+        import adafruit_bmp5xx
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        cs = digitalio.DigitalInOut(OUT)
+        envSensor = adafruit_bmp5xx.Adafruit_BMP5XX_SPI(spi, cs)
+        return envSensor
+
+    def getEnvDataBMP5XX(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.humidity)
+        p_envSensor = int(float(envSensor.pressure))
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempBMP5XX(t_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': '--',
+                'pressure': f"{p_envSensor}",
+                'gas': '--',
+                'IAQ': '--',
+                'HI': '--',
+                'type': 'sensor',
+                'libSensors_version': self.version}
+                
+    # Temperature correction for BMP5XX
+    def correctTempBMP5XX(self, mt):
         return mt
         
     ##############################################
@@ -137,250 +382,6 @@ class SensorDevices:
                 'eCO2': envSensor[1]. eCO2,
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
-                
-    ##############################################
-    # BME280
-    ##############################################
-    def initBME280(self, pins):
-        from adafruit_bme280 import basic as adafruit_bme280
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        bme_cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
-        return envSensor
-
-    def getEnvDataBME280(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBME280(t_envSensor,rh_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': f"{round(rh_envSensor, 1)}",
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BME280
-    def correctTempBME280(self, mt, mh):
-        C_INTERCEPT     = -22.378940
-        C_MT            = 3.497112
-        C_MH            = -0.267584
-        C_MT_P2         = -0.060241
-        C_MT_MH         = 0.000282
-        C_MH_P2         = 0.003162
-        
-        rt_pred = C_INTERCEPT + \
-                  (C_MT * mt) + \
-                  (C_MH * mh) + \
-                  (C_MT_P2 * (mt**2)) + \
-                  (C_MT_MH * (mt * mh)) + \
-                  (C_MH_P2 * (mh**2))
-                  
-        return rt_pred
-                
-    ##############################################
-    # BME680
-    ##############################################
-    def initBME680(self, pins):
-        import adafruit_bme680
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        bme_cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
-        return envSensor
-        
-    def getEnvDataBME680(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        gas_envSensor = int(envSensor.gas)
-        
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBME680(t_envSensor,rh_envSensor)
-        aqi_envSensor = self.getIAQBME680(rh_envSensor, gas_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': f"{round(rh_envSensor,1)}",
-                'pressure': f"{p_envSensor}",
-                'gas': f"{gas_envSensor}",
-                'IAQ': f"{aqi_envSensor}",
-                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BME680
-    def correctTempBME680(self, mt, mh):
-        C_INTERCEPT     = -27.800990
-        C_MT            = 2.686044
-        C_MH            = 0.577078
-        C_MT_P2         = -0.026907
-        C_MT_MH         = -0.018497
-        C_MH_P2         = -0.003123
-        
-        rt_pred = C_INTERCEPT + \
-                  (C_MT * mt) + \
-                  (C_MH * mh) + \
-                  (C_MT_P2 * (mt**2)) + \
-                  (C_MT_MH * (mt * mh)) + \
-                  (C_MH_P2 * (mh**2))
-        return rt_pred
-    
-    # IAQ estimator for BME680
-    def getIAQBME680(self, RH, R_gas):
-        S_max = 400
-    
-        SG_max = 0.75 * S_max
-        R_min = 750 # This is the saturation value in Ohm
-        R_max = 80000  # This is the baseline that needs to be measured in clean air
-        SG = SG_max * ((log10(R_gas)-log10(R_min))/(log10(R_max)-log10(R_min)))
-         
-        SH_max = 0.25 * S_max
-        SH_opt = 40
-        SH_range = 60
-        SH = SH_max * (1 - (abs(RH - SH_opt))/SH_range)
-        
-        # We are using the reversed scale 0 -> 100
-        IAQ = int(S_max-(SG + SH))
-        return IAQ
-                
-    ##############################################
-    # MAX31865
-    ##############################################
-    def initMAX31865(self, pins):
-        import adafruit_max31865
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        bme_cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_max31865.MAX31865(spi, bme_cs)
-        return envSensor
-        
-    def getEnvDataMAX31865(self, envSensor):
-        t_envSensor = float(envSensor.temperature)
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempMAX31865(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': "--",
-                'pressure': "--",
-                'gas': '--',
-                'aqi': '--',
-                'IAQ': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for MAX31865
-    def correctTempMax31865(self, mt):
-        return mt
-        
-    ##############################################
-    # BMP280
-    ##############################################
-    def initBMP280(self, pins):
-        import adafruit_bmp280
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        bmp_cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bmp280.Adafruit_BMP280_SPI(spi, bmp_cs)
-        return envSensor
-
-    def getEnvDataBMP280(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBMP280(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': '--',
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BMP280
-    def correctTempBMP280(self, mt):
-        return mt
-                
-    ##############################################
-    # BMP3XX
-    ##############################################
-    def initBMP3XX(self, pins):
-        import adafruit_bmp3xx
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        bmp_cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bmp3xx.Adafruit_BMP3XX_SPI(spi, bmp_cs)
-        return envSensor
-
-    def getEnvDataBMP3XX(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBMP3XX(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': '--',
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BMP3XX
-    def correctTempBMP3XX(self, mt):
-        return mt
-    
-    ##############################################
-    # BMP5XX
-    ##############################################
-    def initBMP5XX(self, pins):
-        import adafruit_bmp5xx
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        bmp_cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bmp5xx.Adafruit_BMP5XX_SPI(spi, bmp_cs)
-        return envSensor
-
-    def getEnvDataBMP5XX(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBMP5XX(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': '--',
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BMP5XX
-    def correctTempBMP5XX(self, mt):
-        return mt
                 
     ##############################################
     # Data Collection
