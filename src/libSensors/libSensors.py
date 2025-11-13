@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.12.3
+# * v2025.11.13.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.12.3"
+libSensors_version = "2025.11.13.1"
 
 import time
 import busio
@@ -25,6 +25,8 @@ class SensorDevices:
         try:
             if envSensorName == "MCP9808":
                 envSensor = self.initMCP9808(pins)
+            elif envSensorName == "AHT21":
+                envSensor = self.initAHT21(pins)
             elif envSensorName == "BME280":
                 envSensor = self.initBME280(pins)
             elif envSensorName == "BME680":
@@ -37,6 +39,8 @@ class SensorDevices:
                 envSensor = self.initBMP5XX(pins)
             elif envSensorName == "MAX31865":
                 envSensor = self.initMAX31865(pins)
+            elif envSensorName == "ENS160_AHT21":
+                envSensor = self.initENS160_AHT21(pins)
             else:
                 envSensor = None
             print(f"Temperature sensor ({envSensorName}) found and initialized.")
@@ -53,9 +57,9 @@ class SensorDevices:
     ##############################################
     def initMCP9808(self, pins):
         import adafruit_mcp9808
-        MCP_I2C_SCL = getattr(board, "GP" + str(pins[0]))
-        MCP_I2C_SDA = getattr(board, "GP" + str(pins[1]))
-        i2c = busio.I2C(MCP_I2C_SCL, MCP_I2C_SDA)
+        I2C_SCL = getattr(board, "GP" + str(pins[0]))
+        I2C_SDA = getattr(board, "GP" + str(pins[1]))
+        i2c = busio.I2C(I2C_SCL, I2C_SDA)
         envSensor = adafruit_mcp9808.MCP9808(i2c)
         return envSensor
 
@@ -72,21 +76,79 @@ class SensorDevices:
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
                 
-    # Generic Temperature correction for BME280
+    # Generic Temperature correction for MCP9808
     def correctTempMCP9808(self, mt):
         return mt
+        
+    ##############################################
+    # AHT21
+    ##############################################
+    def initAHT21(self, pins):
+        import adafruit_ahtx0
+        I2C_SCL = getattr(board, "GP" + str(pins[0]))
+        I2C_SDA = getattr(board, "GP" + str(pins[1]))
+        i2c = busio.I2C(I2C_SCL, I2C_SDA)
+        envSensor = adafruit_ahtx0.AHTx0(i2c)
+        return envSensor
+
+    def getEnvDataAHT21(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.relative_humidity)
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempAHT21(t_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': f"{round(rh_envSensor, 1)}",
+                'pressure': "--",
+                'gas': '--',
+                'IAQ': '--',
+                'HI': '--',
+                'type': 'sensor',
+                'libSensors_version': libSensors_version}
+                
+    # Generic Temperature correction for AHT21
+    def correctTempAHT21(self, mt):
+        return mt
+        
+    ##############################################
+    # ENS160 + AHT21
+    ##############################################
+    def initENS160_AHT21(self, pins):
+        import adafruit_ahtx0
+        import adafruit_ens160
+        I2C_SCL = getattr(board, "GP" + str(pins[0]))
+        I2C_SDA = getattr(board, "GP" + str(pins[1]))
+        i2c = busio.I2C(I2C_SCL, I2C_SDA)
+        envSensor1 = adafruit_ahtx0.AHTx0(i2c)
+        envSensor2 = adafruit_ens160.ENS160(i2c)
+        return [envSensor1, envSensor2]
+
+    def getEnvDataENS160_AHT21(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor[0].temperature)
+        rh_envSensor = float(envSensor[0].relative_humidity)
+        envSensor[1].temperature_compensation = t_envSensor
+        envSensor[1].humidity_compensation = rh_envSensor
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': f"{round(rh_envSensor, 1)}",
+                'pressure': "--",
+                'gas': '--',
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
+                'IAQ': envSensor[1].AQI,
+                'TVOC': envSensor[1].TVOC,
+                'eCO2': envSensor[1]. eCO2,
+                'type': 'sensor',
+                'libSensors_version': libSensors_version}
                 
     ##############################################
     # BME280
     ##############################################
     def initBME280(self, pins):
         from adafruit_bme280 import basic as adafruit_bme280
-        BME_CLK = getattr(board, "GP" + str(pins[0]))
-        BME_MOSI = getattr(board, "GP" + str(pins[1]))
-        BME_MISO = getattr(board, "GP" + str(pins[2]))
-        BME_OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME_OUT)
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        bme_cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
         return envSensor
 
@@ -128,12 +190,12 @@ class SensorDevices:
     ##############################################
     def initBME680(self, pins):
         import adafruit_bme680
-        BME_CLK = getattr(board, "GP" + str(pins[0]))
-        BME_MOSI = getattr(board, "GP" + str(pins[1]))
-        BME_MISO = getattr(board, "GP" + str(pins[2]))
-        BME_OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME_OUT)
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        bme_cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, bme_cs)
         return envSensor
         
@@ -195,12 +257,12 @@ class SensorDevices:
     ##############################################
     def initMAX31865(self, pins):
         import adafruit_max31865
-        BME_CLK = getattr(board, "GP" + str(pins[0]))
-        BME_MOSI = getattr(board, "GP" + str(pins[1]))
-        BME_MISO = getattr(board, "GP" + str(pins[2]))
-        BME_OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(BME_CLK, MISO=BME_MISO, MOSI=BME_MOSI)
-        bme_cs = digitalio.DigitalInOut(BME_OUT)
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        bme_cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_max31865.MAX31865(spi, bme_cs)
         return envSensor
         
@@ -226,12 +288,12 @@ class SensorDevices:
     ##############################################
     def initBMP280(self, pins):
         import adafruit_bmp280
-        BMP_CLK = getattr(board, "GP" + str(pins[0]))
-        BMP_MOSI = getattr(board, "GP" + str(pins[1]))
-        BMP_MISO = getattr(board, "GP" + str(pins[2]))
-        BMP_OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(BMP_CLK, MISO=BMP_MISO, MOSI=BMP_MOSI)
-        bmp_cs = digitalio.DigitalInOut(BMP_OUT)
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        bmp_cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_bmp280.Adafruit_BMP280_SPI(spi, bmp_cs)
         return envSensor
 
@@ -259,12 +321,12 @@ class SensorDevices:
     ##############################################
     def initBMP3XX(self, pins):
         import adafruit_bmp3xx
-        BMP_CLK = getattr(board, "GP" + str(pins[0]))
-        BMP_MOSI = getattr(board, "GP" + str(pins[1]))
-        BMP_MISO = getattr(board, "GP" + str(pins[2]))
-        BMP_OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(BMP_CLK, MISO=BMP_MISO, MOSI=BMP_MOSI)
-        bmp_cs = digitalio.DigitalInOut(BMP_OUT)
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        bmp_cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_bmp3xx.Adafruit_BMP3XX_SPI(spi, bmp_cs)
         return envSensor
 
@@ -292,12 +354,12 @@ class SensorDevices:
     ##############################################
     def initBMP5XX(self, pins):
         import adafruit_bmp5xx
-        BMP_CLK = getattr(board, "GP" + str(pins[0]))
-        BMP_MOSI = getattr(board, "GP" + str(pins[1]))
-        BMP_MISO = getattr(board, "GP" + str(pins[2]))
-        BMP_OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(BMP_CLK, MISO=BMP_MISO, MOSI=BMP_MOSI)
-        bmp_cs = digitalio.DigitalInOut(BMP_OUT)
+        CLK = getattr(board, "GP" + str(pins[0]))
+        MOSI = getattr(board, "GP" + str(pins[1]))
+        MISO = getattr(board, "GP" + str(pins[2]))
+        OUT = getattr(board, "GP" + str(pins[3]))
+        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
+        bmp_cs = digitalio.DigitalInOut(OUT)
         envSensor = adafruit_bmp5xx.Adafruit_BMP5XX_SPI(spi, bmp_cs)
         return envSensor
 
@@ -370,6 +432,8 @@ class SensorDevices:
     def getSensorData(self, envSensor, envSensorName, correctTemp):
         if envSensorName == "MCP9808":
             sensorData = self.getEnvDataMCP9808(envSensor, correctTemp)
+        elif envSensorName == "AHT21":
+            sensorData = self.getEnvDataAHT21(envSensor, correctTemp)
         elif envSensorName == "BME280":
             sensorData = self.getEnvDataBME280(envSensor, correctTemp)
         elif envSensorName == "BME680":
@@ -382,6 +446,8 @@ class SensorDevices:
             sensorData = self.getEnvDataBMP5XX(envSensor, correctTemp)
         elif envSensorName == "MAX31865":
             sensorData = self.getEnvDataMAX31865(envSensor, correctTemp)
+        elif envSensorName == "ENS160_AHT21":
+            sensorData = self.getEnvDataENS160_AHT21(envSensor, correctTemp)
         return sensorData
     
     ##############################################
