@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.14.1
+# * v2025.11.14.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.14.1"
+libSensors_version = "2025.11.14.3"
 
 import time
 import busio
@@ -47,6 +47,66 @@ class SensorDevices:
     ##############################################
     
     ##############################################
+    # AHT21
+    ##############################################
+    def initAHT21(self, pins):
+        import adafruit_ahtx0
+        I2C_SCL = getattr(board, "GP" + str(pins[0]))
+        I2C_SDA = getattr(board, "GP" + str(pins[1]))
+        i2c = busio.I2C(I2C_SCL, I2C_SDA)
+        envSensor = adafruit_ahtx0.AHTx0(i2c)
+        return envSensor
+
+    def getEnvDataAHT21(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor.temperature)
+        rh_envSensor = float(envSensor.relative_humidity)
+        if correctTemp.lower() == 'true':
+            t_envSensor = self.correctTempAHT21(t_envSensor)
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': f"{round(rh_envSensor, 1)}",
+                'pressure': "--",
+                'gas': '--',
+                'IAQ': '--',
+                'TVOC': '--',
+                'eCO2': '--',
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
+                'type': 'sensor',
+                'libSensors_version': libSensors_version}
+                
+    # Generic Temperature correction for AHT21
+    def correctTempAHT21(self, mt):
+        return mt
+        
+    ##############################################
+    # ENS160 + AHT21
+    ##############################################
+    def initENS160_AHT21(self, pins):
+        import adafruit_ahtx0
+        import adafruit_ens160
+        I2C_SCL = getattr(board, "GP" + str(pins[0]))
+        I2C_SDA = getattr(board, "GP" + str(pins[1]))
+        i2c = busio.I2C(I2C_SCL, I2C_SDA)
+        envSensor1 = adafruit_ahtx0.AHTx0(i2c)
+        envSensor2 = adafruit_ens160.ENS160(i2c)
+        return [envSensor1, envSensor2]
+
+    def getEnvDataENS160_AHT21(self, envSensor, correctTemp):
+        t_envSensor = float(envSensor[0].temperature)
+        rh_envSensor = float(envSensor[0].relative_humidity)
+        envSensor[1].temperature_compensation = t_envSensor
+        envSensor[1].humidity_compensation = rh_envSensor
+        return {'temperature': f"{round(t_envSensor,1)}",
+                'RH': f"{round(rh_envSensor, 1)}",
+                'pressure': "--",
+                'gas': '--',
+                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
+                'IAQ': envSensor[1].AQI,
+                'TVOC': envSensor[1].TVOC,
+                'eCO2': envSensor[1]. eCO2,
+                'type': 'sensor',
+                'libSensors_version': libSensors_version}
+    
+    ##############################################
     # MCP9808
     ##############################################
     def initMCP9808(self, pins):
@@ -66,6 +126,8 @@ class SensorDevices:
                 'pressure': "--",
                 'gas': '--',
                 'IAQ': '--',
+                'TVOC': '--',
+                'eCO2': '--',
                 'HI': '--',
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
@@ -105,6 +167,8 @@ class SensorDevices:
                 'gas': '--',
                 'aqi': '--',
                 'IAQ': '--',
+                'TVOC': '--',
+                'eCO2': '--',
                 'HI': '--',
                 'type': 'sensor',
                 'libSensors_version': self.version}
@@ -138,6 +202,8 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': '--',
                 'IAQ': '--',
+                'TVOC': '--',
+                'eCO2': '--',
                 'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
                 'type': 'sensor',
                 'libSensors_version': self.version}
@@ -188,6 +254,8 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': f"{gas_envSensor}",
                 'IAQ': f"{aqi_envSensor}",
+                'TVOC': '--',
+                'eCO2': '--',
                 'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
                 'type': 'sensor',
                 'libSensors_version': self.version}
@@ -226,64 +294,6 @@ class SensorDevices:
         # We are using the reversed scale 0 -> 100
         IAQ = int(S_max-(SG + SH))
         return IAQ
-        
-    ##############################################
-    # AHT21
-    ##############################################
-    def initAHT21(self, pins):
-        import adafruit_ahtx0
-        I2C_SCL = getattr(board, "GP" + str(pins[0]))
-        I2C_SDA = getattr(board, "GP" + str(pins[1]))
-        i2c = busio.I2C(I2C_SCL, I2C_SDA)
-        envSensor = adafruit_ahtx0.AHTx0(i2c)
-        return envSensor
-
-    def getEnvDataAHT21(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.relative_humidity)
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempAHT21(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': f"{round(rh_envSensor, 1)}",
-                'pressure': "--",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': libSensors_version}
-                
-    # Generic Temperature correction for AHT21
-    def correctTempAHT21(self, mt):
-        return mt
-        
-    ##############################################
-    # ENS160 + AHT21
-    ##############################################
-    def initENS160_AHT21(self, pins):
-        import adafruit_ahtx0
-        import adafruit_ens160
-        I2C_SCL = getattr(board, "GP" + str(pins[0]))
-        I2C_SDA = getattr(board, "GP" + str(pins[1]))
-        i2c = busio.I2C(I2C_SCL, I2C_SDA)
-        envSensor1 = adafruit_ahtx0.AHTx0(i2c)
-        envSensor2 = adafruit_ens160.ENS160(i2c)
-        return [envSensor1, envSensor2]
-
-    def getEnvDataENS160_AHT21(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor[0].temperature)
-        rh_envSensor = float(envSensor[0].relative_humidity)
-        envSensor[1].temperature_compensation = t_envSensor
-        envSensor[1].humidity_compensation = rh_envSensor
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': f"{round(rh_envSensor, 1)}",
-                'pressure': "--",
-                'gas': '--',
-                'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
-                'IAQ': envSensor[1].AQI,
-                'TVOC': envSensor[1].TVOC,
-                'eCO2': envSensor[1]. eCO2,
-                'type': 'sensor',
-                'libSensors_version': libSensors_version}
                 
     ##############################################
     # Data Collection
@@ -297,8 +307,10 @@ class SensorDevices:
                         'RH': '--',
                         'pressure': '--',
                         'gas': '--',
-                        'aqi': '--',
                         'IAQ': '--',
+                        'TVOC': '--',
+                        'eCO2': '--',
+                        'HI': '--',
                         'type': 'CPU adj.',
                         'libSensors_version': version}
             else:
@@ -307,6 +319,8 @@ class SensorDevices:
                         'pressure': '--',
                         'gas': '--',
                         'IAQ': '--',
+                        'TVOC': '--',
+                        'eCO2': '--',
                         'HI': '--',
                         'type': 'CPU raw',
                         'libSensors_version': self.version}
@@ -328,6 +342,8 @@ class SensorDevices:
                     'pressure': '--',
                     'gas': '--',
                     'IAQ': '--',
+                    'TVOC': '--',
+                    'eCO2': '--',
                     'HI': '--',
                     'type': 'CPU adj',
                     'libSensors_version': self.version}
