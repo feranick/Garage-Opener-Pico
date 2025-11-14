@@ -4,11 +4,22 @@ CIRCUITPY_WEB_INSTANCE_NAME = "GarageOpener"
 CIRCUITPY_WEB_API_PASSWORD="passw0rd"
 CIRCUITPY_WEB_API_PORT=205
 triggerDistance = 20
-sensor1 = "BME280"
-sensor1Pins = "18,19,16,17"
+
+sensor1 = "AHT21"
+sensor1Pins = "17,16"
+#sensor1 = "BME280"
+#sensor1Pins = "18,19,16,17"
 sensor1CorrectTemp = "True"
 sensorURL = "192.168.1.206"
 station = "kbos"
 zipcode = "02139"
 country = "US"
 ow_api_key = "YOUR_API_KEY"
+
+# Pins format for SPI:
+# SCK, MOSI, MISO, OUT
+# CLK, SDI, SDO, CS
+# CLK, SDA, SDO, CS
+
+# Pins format for I2C:
+# SCL, SDA
