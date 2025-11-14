@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.13.3
+# * v2025.11.14.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.13.3"
+libSensors_version = "2025.11.14.1"
 
 import time
 import busio
@@ -16,7 +16,7 @@ import math
 ############################
 # Sensors
 ############################
-class SensorDevices:
+class UnusedSensorDevices:
     def __init__(self):
         self.version = libSensors_version
         pass
@@ -31,12 +31,6 @@ class SensorDevices:
                 envSensor = self.initBME280(pins)
             elif envSensorName == "BME680":
                 envSensor = self.initBME680(pins)
-            elif envSensorName == "BMP280":
-                envSensor = self.initBMP280(pins)
-            elif envSensorName == "BMP3XX":
-                envSensor = self.initBMP3XX(pins)
-            elif envSensorName == "BMP5XX":
-                envSensor = self.initBMP5XX(pins)
             elif envSensorName == "AHT21":
                 envSensor = self.initAHT21(pins)
             elif envSensorName == "ENS160_AHT21":
@@ -234,105 +228,6 @@ class SensorDevices:
         return IAQ
         
     ##############################################
-    # BMP280
-    ##############################################
-    def initBMP280(self, pins):
-        import adafruit_bmp280
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bmp280.Adafruit_BMP280_SPI(spi, cs)
-        return envSensor
-
-    def getEnvDataBMP280(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBMP280(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': '--',
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BMP280
-    def correctTempBMP280(self, mt):
-        return mt
-                
-    ##############################################
-    # BMP3XX
-    ##############################################
-    def initBMP3XX(self, pins):
-        import adafruit_bmp3xx
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bmp3xx.Adafruit_BMP3XX_SPI(spi, cs)
-        return envSensor
-
-    def getEnvDataBMP3XX(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBMP3XX(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': '--',
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BMP3XX
-    def correctTempBMP3XX(self, mt):
-        return mt
-    
-    ##############################################
-    # BMP5XX
-    ##############################################
-    def initBMP5XX(self, pins):
-        import adafruit_bmp5xx
-        CLK = getattr(board, "GP" + str(pins[0]))
-        MOSI = getattr(board, "GP" + str(pins[1]))
-        MISO = getattr(board, "GP" + str(pins[2]))
-        OUT = getattr(board, "GP" + str(pins[3]))
-        spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
-        cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_bmp5xx.Adafruit_BMP5XX_SPI(spi, cs)
-        return envSensor
-
-    def getEnvDataBMP5XX(self, envSensor, correctTemp):
-        t_envSensor = float(envSensor.temperature)
-        rh_envSensor = float(envSensor.humidity)
-        p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBMP5XX(t_envSensor)
-        return {'temperature': f"{round(t_envSensor,1)}",
-                'RH': '--',
-                'pressure': f"{p_envSensor}",
-                'gas': '--',
-                'IAQ': '--',
-                'HI': '--',
-                'type': 'sensor',
-                'libSensors_version': self.version}
-                
-    # Temperature correction for BMP5XX
-    def correctTempBMP5XX(self, mt):
-        return mt
-        
-    ##############################################
     # AHT21
     ##############################################
     def initAHT21(self, pins):
@@ -446,12 +341,6 @@ class SensorDevices:
             sensorData = self.getEnvDataBME280(envSensor, correctTemp)
         elif envSensorName == "BME680":
             sensorData = self.getEnvDataBME680(envSensor, correctTemp)
-        elif envSensorName == "BMP280":
-            sensorData = self.getEnvDataBMP280(envSensor, correctTemp)
-        elif envSensorName == "BMP3XX":
-            sensorData = self.getEnvDataBMP3XX(envSensor, correctTemp)
-        elif envSensorName == "BMP5XX":
-            sensorData = self.getEnvDataBMP5XX(envSensor, correctTemp)
         elif envSensorName == "MAX31865":
             sensorData = self.getEnvDataMAX31865(envSensor, correctTemp)
         elif envSensorName == "ENS160_AHT21":
@@ -461,7 +350,7 @@ class SensorDevices:
     ##############################################
     # Sensors: Heat Index
     ##############################################
-    # Caluclulate heat index
+    # Calculate heat index
     def calctHI(self, t, rh):
         if t == "--" or rh == "--":
             return "--"
@@ -499,7 +388,6 @@ class SensorDevices:
                 
         return round((hi - 32) * 5/9 , 1)
     
-
 ##############################################
 # Math Utilities
 ##############################################
