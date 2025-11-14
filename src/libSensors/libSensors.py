@@ -16,7 +16,7 @@ import math
 ############################
 # Sensors
 ############################
-class UnusedSensorDevices:
+class SensorDevices:
     def __init__(self):
         self.version = libSensors_version
         pass
