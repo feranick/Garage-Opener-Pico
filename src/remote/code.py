@@ -195,6 +195,7 @@ class GarageServer:
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
                 "remoteHI": remoteData['HI'],
+                "remoteIAQ": remoteData['IAQ'],
                 "remoteTVOC": remoteData['TVOC'],
                 "remoteeCO2": remoteData['eCO2'],
                 "remoteSens": remoteData['type'],

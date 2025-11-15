@@ -414,6 +414,7 @@ const uvColorRanges = [
     { min: 10.5, max: 1e8, color: "purple" }
 ];
 
+/*
 function getIAQColor(value) {
     if (value >= 0 && value <= 50) {
         return "green";
@@ -431,6 +432,17 @@ function getIAQColor(value) {
         return "black";
     }
 }
+*/
+
+function getIAQColor(value) {
+    switch (value) {
+        case 1: return "green";
+        case 2: return "yellow";
+        case 3: return "orange";
+        case 4: return "red";
+        case 5: return "purple";
+        }
+    }
 
 function doorColor(state) {
     if (state == "OPEN") {
