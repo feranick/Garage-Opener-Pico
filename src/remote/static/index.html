@@ -39,7 +39,7 @@ body {
 #Status:hover, #Submit:hover { background-color: #1e62a0; }
 #Submit { height: 150px; background-color: orange; }
 
-#locIAQ, #locIAQ_label, #locGas, #locGas_label {
+#locIAQ, #locIAQ_label, #locTVOC, #locTVOC_label, #loceCO2, #loceCO2_label, #remoteIAQ, #remoteIAQ_label, #remoteTVOC, #remoteTVOC_label, #remoteeCO2, #remoteeCO2_label {
     display: none;
     }
 
@@ -82,6 +82,8 @@ fieldset {
             <br>HI:
             <br>WB T:
             <label id="locIAQ_label">IAQ: </label>
+            <label id="locTVOC_label">TVOC: </label>
+            <label id="loceCO2_label">eCO2: </label>
         </div>
         <div class="column">
             <br>
@@ -90,6 +92,8 @@ fieldset {
             <br><span id="locHI">...</span>
             <br><span id="locWBT">...</span>
             <br><span id="locIAQ">...</span>
+            <br><span id="locTVOC">...</span>
+            <br><span id="loceCO2">...</span>
         </div>
         <div class="column">
             <strong>Garage</strong>
@@ -97,6 +101,9 @@ fieldset {
             <br>RH:
             <br>HI:
             <br>WB T:
+            <label id="remoteIAQ_label">IAQ: </label>
+            <label id="remoteTVOC_label">TVOC: </label>
+            <label id="remoteeCO2_label">eCO2: </label>
         </div>
         <div class="column">
             <br>
@@ -104,10 +111,11 @@ fieldset {
             <br><span id="remoteRH">...</span>
             <br><span id="remoteHI">...</span>
             <br><span id="remoteWBT">...</span>
+            <br><span id="remoteIAQ">...</span>
+            <br><span id="remoteTVOC">...</span>
+            <br><span id="removeeCO2">...</span>
         </div>
     </div>
-    <!--<label id="locGas_label">Gas Res: </label>
-    <span id="locGas">...</span>-->
 </fieldset>
 
 <form name="submitForm">

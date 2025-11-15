@@ -213,14 +213,30 @@ async function updateStatus() {
     document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";
     document.getElementById("remoteWBT").textContent = getWetBulbTemp(data.remoteTemp, data.remoteRH, data.remoteSens) + " \u00B0C";
     
-    if(data.locGas !== "--") {
+    if(data.locIAQ !== "--") {
         document.getElementById('locIAQ').style.display = 'block';
         document.getElementById('locIAQ_label').style.display = 'block';
-        document.getElementById("locIAQ").textContent = data.locIAQ;
-        document.getElementById("locIAQ").style.color = getIAQColor(data.locIAQ);
-        //document.getElementById('locGas').style.display = 'block';
-        //document.getElementById('locGas_label').style.display = 'block';
-        //document.getElementById("locGas").textContent = data.locGas;
+        document.getElementById('locIAQ').textContent = data.locIAQ;
+        document.getElementById('locIAQ').style.color = getIAQColor(data.locIAQ);
+        document.getElementById('locTVOC').style.display = 'block';
+        document.getElementById('locTVOC_label').style.display = 'block';
+        document.getElementById('locTVOC').textContent = data.locTVOC;
+        document.getElementById('loceCO2').style.display = 'block';
+        document.getElementById('loceCO2_label').style.display = 'block';
+        document.getElementById('loceCO2').textContent = data.loceCO2;
+        }
+        
+    if(data.remoteIAQ !== "--") {
+        document.getElementById('remoteIAQ').style.display = 'block';
+        document.getElementById('remoteIAQ_label').style.display = 'block';
+        document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
+        document.getElementById('remoteIAQ').style.color = getIAQColor(data.locIAQ);
+        document.getElementById('remoteTVOC').style.display = 'block';
+        document.getElementById('remoteTVOC_label').style.display = 'block';
+        document.getElementById('remoteTVOC').textContent = data.remoteTVOC;
+        document.getElementById('remoteeCO2').style.display = 'block';
+        document.getElementById('remoteeCO2_label').style.display = 'block';
+        document.getElementById("remoteeCO2").textContent = data.remoteeCO2;
         }
     
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
