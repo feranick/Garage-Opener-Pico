@@ -189,10 +189,14 @@ class GarageServer:
                 "locHI": localData['HI'],
                 "locGas": localData['gas'],
                 "locIAQ": localData['IAQ'],
+                "locTVOC": localData['TVOC'],
+                "loceCO2": localData['eCO2'],
                 "locSens": localData['type'],
                 "remoteTemp": remoteData['temperature'],
                 "remoteRH": remoteData['RH'],
                 "remoteHI": remoteData['HI'],
+                "remoteTVOC": remoteData['TVOC'],
+                "remoteeCO2": remoteData['eCO2'],
                 "remoteSens": remoteData['type'],
                 "remoteURL" : self.sonarURL,
                 "libSensors_version": self.sensors.sensDev.version,
@@ -353,16 +357,20 @@ class Sensors:
                     'RH': '--', 
                     'pressure': '--', 
                     'gas': '--',
-                    'IAQ': '--', 
-                    'HI': '--', 
+                    'IAQ': '--',
+                    'TVOC': '--',
+                    'eCO2': '--',
+                    'HI': '--',
                     'type': 'CPU adj.'}
             else:
                 return {'temperature': f"{round(t_cpu, 1)}", 
                     'RH': '--', 
                     'pressure': '--', 
                     'gas': '--',
-                    'IAQ': '--',  
-                    'HI': '--', 
+                    'IAQ': '--',
+                    'TVOC': '--',
+                    'eCO2': '--',
+                    'HI': '--',
                     'type': 'CPU raw'}
         try:
             envSensorData = self.sensDev.getSensorData(envSensor, envSensorName, correctTemp)
@@ -381,8 +389,10 @@ class Sensors:
                     'RH': '--', 
                     'pressure': '--',  
                     'gas': '--',
-                    'IAQ': '--',  
-                    'HI': '--', 
+                    'IAQ': '--',
+                    'TVOC': '--',
+                    'eCO2': '--',
+                    'HI': '--',
                     'type': 'CPU adj'}
 
 ############################

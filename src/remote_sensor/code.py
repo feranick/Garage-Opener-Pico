@@ -1,11 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Environmental and remote sonar only
-# * v2025.11.10.1
+# * v2025.11.14.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.10.1"
+version = "2025.11.14.2"
 
 import wifi
 import time
@@ -149,6 +149,9 @@ class GarageServer:
                 "pressure": envData['pressure'],
                 "HI": envData['HI'],
                 "gas": envData['gas'],
+                "IAQ": envData['IAQ'],
+                "TVOC": envData['TVOC'],
+                "eCO2": envData['eCO2'],
                 "type": envData['type'],
                 "libSensors_version": self.sensors.sensDev.version,
             }
@@ -249,17 +252,23 @@ class Sensors:
             print(f"{envSensorName} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
-                        'RH': '--',
+                        'RH': '--', 
                         'pressure': '--',
-                        'HI': '--',
                         'gas': '--',
+                        'IAQ': '--',
+                        'TVOC': '--',
+                        'eCO2': '--',
+                        'HI': '--',
                         'type': 'CPU adj.'}
             else:
                 return {'temperature': f"{round(t_cpu, 1)}",
-                        'RH': '--',
+                        'RH': '--', 
                         'pressure': '--',
-                        'HI': '--',
                         'gas': '--',
+                        'IAQ': '--',
+                        'TVOC': '--',
+                        'eCO2': '--',
+                        'HI': '--',
                         'type': 'CPU raw'}
         try:
             envSensorData = self.sensDev.getSensorData(envSensor, envSensorName, correctTemp)
@@ -275,12 +284,15 @@ class Sensors:
             print(f"{envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
-                    'RH': '--',
-                    'pressure': '--',
+                    'RH': '--', 
+                    'pressure': '--',  
                     'gas': '--',
+                    'IAQ': '--',
+                    'TVOC': '--',
+                    'eCO2': '--',
                     'HI': '--',
                     'type': 'CPU adj'}
-
+                    
     def checkStatusSonar(self):
         if not self.sonar:
             print("Sonar not initialized.")

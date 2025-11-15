@@ -5,3 +5,11 @@ CIRCUITPY_WEB_API_PASSWORD="passw0rd"
 CIRCUITPY_WEB_API_PORT=206
 triggerDistance = 20
 sensorTemperatureOffset = 0
+
+sensor1 = "AHT21"
+sensor1Pins = "17,16"
+sensor1CorrectTemp = "False"
+
+#sensor1 = "BME280"
+#sensor1Pins = "18,19,16,17"
+#sensor1CorrectTemp = "True"
