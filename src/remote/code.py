@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.17.1
+# * v2025.11.17.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.17.1"
+version = "2025.11.17.2"
 
 import wifi
 import time
@@ -295,7 +295,15 @@ class GarageServer:
             return data
         except Exception as e:
             print(f"Sonar not available: {e}")
-            return {'pressure': '--', 'state': 'N/A', 'RH': '--', 'temperature': '--', 'type': '--'}
+            return {'state': 'N/A',
+                    'temperature': '--', 
+                    'pressure': '--',
+                    'RH': '--',  
+                    'HI': '--', 
+                    'IAQ': '--',
+                    'TVOC': '--',
+                    'eCO2': '--', 
+                    'type': '--'}
 
     def setup_ntp(self):
         try:
