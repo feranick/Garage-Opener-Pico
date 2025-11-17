@@ -1,16 +1,13 @@
 CIRCUITPY_WIFI_SSID = "ssid_name"
 CIRCUITPY_WIFI_PASSWORD = "password"
 CIRCUITPY_WEB_INSTANCE_NAME = "GarageOpener"
-CIRCUITPY_WEB_API_PASSWORD="passw0rd"
-CIRCUITPY_WEB_API_PORT=205
-triggerDistance = 20
-
-sensor1 = "AHT21"
-sensor1Pins = "17,16"
-#sensor1 = "BME280"
-#sensor1Pins = "18,19,16,17"
-sensor1CorrectTemp = "True"
-sensorURL = "192.168.1.206"
+CIRCUITPY_WEB_API_PASSWORD = "passw0rd"
+CIRCUITPY_WEB_API_PORT = 205
+trigger_distance = "20"
+sensor1_name = "AHT21"
+sensor1_pins = "17,16"
+sensor1_correct_temp = "False"
+remote_sensor_url = "192.168.1.206"
 station = "kbos"
 zipcode = "02139"
 country = "US"

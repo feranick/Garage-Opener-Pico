@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.14.3
+# * v2025.11.17.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.14.3"
+libSensors_version = "2025.11.17.1"
 
 import time
 import busio
@@ -21,26 +21,29 @@ class SensorDevices:
         self.version = libSensors_version
         pass
 
-    def initSensor(self, envSensorName, pins):
+    def initSensor(self, envSensor_name, pins):
         try:
-            if envSensorName == "MCP9808":
+            if envSensor_name == "MCP9808":
                 envSensor = self.initMCP9808(pins)
-            elif envSensorName == "MAX31865":
+            elif envSensor_name == "MAX31865":
                 envSensor = self.initMAX31865(pins)
-            elif envSensorName == "BME280":
+            elif envSensor_name == "BME280":
                 envSensor = self.initBME280(pins)
-            elif envSensorName == "BME680":
+            elif envSensor_name == "BME680":
                 envSensor = self.initBME680(pins)
-            elif envSensorName == "AHT21":
+            elif envSensor_name == "AHT21":
                 envSensor = self.initAHT21(pins)
-            elif envSensorName == "ENS160_AHT21":
+            elif envSensor_name == "ENS160_AHT21":
                 envSensor = self.initENS160_AHT21(pins)
             else:
                 envSensor = None
-            print(f"Temperature sensor ({envSensorName}) found and initialized.")
+            if envSensor is not None:
+                print(f"Temperature sensor ({envSensor_name}) found and initialized.")
+            else:
+                print(f"Temperature sensor not installed")
             return envSensor
         except Exception as e:
-            print(f"Failed to initialize enironmental sensor ({envSensorName}): {e}")
+            print(f"Failed to initialize enironmental sensor ({envSensor_name}): {e}")
             
     ##############################################
     # Sensors: Initialization and Data collection
@@ -57,11 +60,11 @@ class SensorDevices:
         envSensor = adafruit_ahtx0.AHTx0(i2c)
         return envSensor
 
-    def getEnvDataAHT21(self, envSensor, correctTemp):
+    def getEnvDataAHT21(self, envSensor, correct_temp):
         t_envSensor = float(envSensor.temperature)
         rh_envSensor = float(envSensor.relative_humidity)
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempAHT21(t_envSensor)
+        if correct_temp.lower() == 'true':
+            t_envSensor = self.correct_tempAHT21(t_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': "--",
@@ -74,7 +77,7 @@ class SensorDevices:
                 'libSensors_version': libSensors_version}
                 
     # Generic Temperature correction for AHT21
-    def correctTempAHT21(self, mt):
+    def correct_tempAHT21(self, mt):
         return mt
         
     ##############################################
@@ -90,7 +93,7 @@ class SensorDevices:
         envSensor2 = adafruit_ens160.ENS160(i2c)
         return [envSensor1, envSensor2]
 
-    def getEnvDataENS160_AHT21(self, envSensor, correctTemp):
+    def getEnvDataENS160_AHT21(self, envSensor, correct_temp):
         t_envSensor = float(envSensor[0].temperature)
         rh_envSensor = float(envSensor[0].relative_humidity)
         envSensor[1].temperature_compensation = t_envSensor
@@ -117,10 +120,10 @@ class SensorDevices:
         envSensor = adafruit_mcp9808.MCP9808(i2c)
         return envSensor
 
-    def getEnvDataMCP9808(self, envSensor, correctTemp):
+    def getEnvDataMCP9808(self, envSensor, correct_temp):
         t_envSensor = float(envSensor.temperature)
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempMCP9808(t_envSensor)
+        if correct_temp.lower() == 'true':
+            t_envSensor = self.correct_tempMCP9808(t_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': "--",
                 'pressure': "--",
@@ -133,7 +136,7 @@ class SensorDevices:
                 'libSensors_version': libSensors_version}
                 
     # Generic Temperature correction for MCP9808
-    def correctTempMCP9808(self, mt):
+    def correct_tempMCP9808(self, mt):
         return mt
         
     ##############################################
@@ -157,10 +160,10 @@ class SensorDevices:
         
         return envSensor
         
-    def getEnvDataMAX31865(self, envSensor, correctTemp):
+    def getEnvDataMAX31865(self, envSensor, correct_temp):
         t_envSensor = float(envSensor.temperature)
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempMAX31865(t_envSensor)
+        if correct_temp.lower() == 'true':
+            t_envSensor = self.correct_tempMAX31865(t_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': "--",
                 'pressure': "--",
@@ -174,7 +177,7 @@ class SensorDevices:
                 'libSensors_version': self.version}
                 
     # Temperature correction for MAX31865
-    def correctTempMax31865(self, mt):
+    def correct_tempMAX31865(self, mt):
         return mt
                 
     ##############################################
@@ -191,12 +194,12 @@ class SensorDevices:
         envSensor = adafruit_bme280.Adafruit_BME280_SPI(spi, cs)
         return envSensor
 
-    def getEnvDataBME280(self, envSensor, correctTemp):
+    def getEnvDataBME280(self, envSensor, correct_temp):
         t_envSensor = float(envSensor.temperature)
         rh_envSensor = float(envSensor.humidity)
         p_envSensor = int(float(envSensor.pressure))
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBME280(t_envSensor,rh_envSensor)
+        if correct_temp.lower() == 'true':
+            t_envSensor = self.correct_tempBME280(t_envSensor,rh_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': f"{p_envSensor}",
@@ -209,7 +212,7 @@ class SensorDevices:
                 'libSensors_version': self.version}
                 
     # Temperature correction for BME280
-    def correctTempBME280(self, mt, mh):
+    def correct_tempBME280(self, mt, mh):
         C_INTERCEPT     = -22.378940
         C_MT            = 3.497112
         C_MH            = -0.267584
@@ -240,14 +243,14 @@ class SensorDevices:
         envSensor = adafruit_bme680.Adafruit_BME680_SPI(spi, cs)
         return envSensor
         
-    def getEnvDataBME680(self, envSensor, correctTemp):
+    def getEnvDataBME680(self, envSensor, correct_temp):
         t_envSensor = float(envSensor.temperature)
         rh_envSensor = float(envSensor.humidity)
         p_envSensor = int(float(envSensor.pressure))
         gas_envSensor = int(envSensor.gas)
         
-        if correctTemp.lower() == 'true':
-            t_envSensor = self.correctTempBME680(t_envSensor,rh_envSensor)
+        if correct_temp.lower() == 'true':
+            t_envSensor = self.correct_tempBME680(t_envSensor,rh_envSensor)
         aqi_envSensor = self.getIAQBME680(rh_envSensor, gas_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor,1)}",
@@ -261,7 +264,7 @@ class SensorDevices:
                 'libSensors_version': self.version}
                 
     # Temperature correction for BME680
-    def correctTempBME680(self, mt, mh):
+    def correct_tempBME680(self, mt, mh):
         C_INTERCEPT     = -27.800990
         C_MT            = 2.686044
         C_MH            = 0.577078
@@ -298,10 +301,10 @@ class SensorDevices:
     ##############################################
     # Data Collection
     ##############################################
-    def getData(self, envSensor, envSensorName, correctTemp):
+    def getData(self, envSensor, envSensor_name, correct_temp):
         t_cpu = microcontroller.cpu.temperature
         if not envSensor:
-            print(f"{envSensorName} not initialized. Using CPU temp with estimated offset.")
+            print(f"{envSensor_name} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
                         'RH': '--',
@@ -325,7 +328,7 @@ class SensorDevices:
                         'type': 'CPU raw',
                         'libSensors_version': self.version}
         try:
-            envSensorData = self.getSensorData(envSensor, envSensorName, correctTemp)
+            envSensorData = self.getSensorData(envSensor, envSensor_name, correct_temp)
             delta_t = t_cpu - float(envSensorData['temperature'])
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
@@ -335,7 +338,7 @@ class SensorDevices:
             time.sleep(0.5)
             return envSensorData
         except:
-            print(f"{envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
+            print(f"{envSensor_name} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
                     'RH': '--',
@@ -348,19 +351,19 @@ class SensorDevices:
                     'type': 'CPU adj',
                     'libSensors_version': self.version}
 
-    def getSensorData(self, envSensor, envSensorName, correctTemp):
-        if envSensorName == "MCP9808":
-            sensorData = self.getEnvDataMCP9808(envSensor, correctTemp)
-        elif envSensorName == "AHT21":
-            sensorData = self.getEnvDataAHT21(envSensor, correctTemp)
-        elif envSensorName == "BME280":
-            sensorData = self.getEnvDataBME280(envSensor, correctTemp)
-        elif envSensorName == "BME680":
-            sensorData = self.getEnvDataBME680(envSensor, correctTemp)
-        elif envSensorName == "MAX31865":
-            sensorData = self.getEnvDataMAX31865(envSensor, correctTemp)
-        elif envSensorName == "ENS160_AHT21":
-            sensorData = self.getEnvDataENS160_AHT21(envSensor, correctTemp)
+    def getSensorData(self, envSensor, envSensor_name, correct_temp):
+        if envSensor_name == "MCP9808":
+            sensorData = self.getEnvDataMCP9808(envSensor, correct_temp)
+        elif envSensor_name == "AHT21":
+            sensorData = self.getEnvDataAHT21(envSensor, correct_temp)
+        elif envSensor_name == "BME280":
+            sensorData = self.getEnvDataBME280(envSensor, correct_temp)
+        elif envSensor_name == "BME680":
+            sensorData = self.getEnvDataBME680(envSensor, correct_temp)
+        elif envSensor_name == "MAX31865":
+            sensorData = self.getEnvDataMAX31865(envSensor, correct_temp)
+        elif envSensor_name == "ENS160_AHT21":
+            sensorData = self.getEnvDataENS160_AHT21(envSensor, correct_temp)
         return sensorData
     
     ##############################################

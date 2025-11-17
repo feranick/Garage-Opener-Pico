@@ -1,5 +1,14 @@
+# **********************************************
+# * PicoGarageOpener - settings.toml Editor
+# * Pico driven
+# * v2025.11.17.1
+# * By: Nicola Ferralis <feranick@hotmail.com>
+# **********************************************
+
+version = "2025.11.17.1"
+
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import messagebox, filedialog
 import os
 import sys
 import tomli
@@ -15,32 +24,32 @@ SENSOR_CHOICES = [
     "MAX31865",
     "BME280",
     "BME680",
-    "ENS160_AHT21"
+    "ENS160_AHT21",
+    "None"
 ]
 
 # Standard choices for all boolean fields
 BOOLEAN_CHOICES = ["True", "False"]
 
-# --- Default Settings Structure (Updated with new keys) ---
+# --- Default Settings Structure (Used only for UI creation and defaults) ---
 DEFAULT_SETTINGS = {
     'wifi': {
-        'ssid': 'ssid_name',
-        'password': 'password'
+        'CIRCUITPY_WIFI_SSID': 'ssid_name',
+        'CIRCUITPY_WIFI_PASSWORD': 'password'
     },
     'web_api': {
-        'instance_name': 'PicoGarageOpener',
-        'api_password': 'passw0rd',
-        'api_port': 205
+        'CIRCUITPY_WEB_INSTANCE_NAME': 'LabMonitor',
+        'CIRCUITPY_WEB_API_PASSWORD': 'passw0rd',
+        'CIRCUITPY_WEB_API_PORT': 205
     },
     'sonar': {
-        'triggerDistance': '20'
+        'trigger_distance': '20'
     },
     'sensors': {
-        # Sensor names are now selected from the list above
-        'sensor1_name': 'BME280',
-        'sensor1_pins': '10,11,8,9',
-        'sensor1_correct_temp': True,
-        'sensorURL': '192.168.1.206'
+        'sensor1_name': 'AHT21',
+        'sensor1_pins': '15,14',
+        'sensor1_correct_temp': False,
+        'remote_sensor_url': '0.0.0.0'
     },
     'database': {
         'station': 'kbos',
@@ -53,16 +62,35 @@ DEFAULT_SETTINGS = {
 class ConfigApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("LabMonitor settings.toml Editor")
-        self.geometry("600x900")
+        self.title("PicoGarageOpener settings.toml Editor v."+version)
+        self.geometry("650x900")
         
         self.circuitpy_path = tk.StringVar(self, value="<Select CIRCUITPY Drive Path>")
         self.entries = {}
-        # Using a slightly smaller default font to ensure it fits well
         self.font_style = ('Helvetica', 14)
         
         self.create_widgets()
         self.auto_detect_circuitpy()
+
+    def _format_label_text(self, key):
+        """
+        Converts snake_case key to human-readable label, correctly casing acronyms 
+        like API, URL, and SSID.
+        """
+        
+        # 1. Replace underscores with spaces and apply title case (e.g., 'api_url' -> 'Api Url')
+        label = key.replace('_', ' ').title()
+        
+        # 2. Override common technical acronyms/terms for professional capitalization
+        label = label.replace('Api', 'API')
+        label = label.replace('Url', 'URL')
+        label = label.replace('Ssid', 'SSID')
+        
+        # 3. Add question marks to boolean labels for better clarity
+        if key.endswith('correct_temp') or key.startswith('is_'):
+            label += '?'
+        
+        return label
 
     def create_widgets(self):
         """Builds the UI elements including path selector, actions, and config fields."""
@@ -82,14 +110,20 @@ class ConfigApp(tk.Tk):
         tk.Entry(path_frame, textvariable=self.circuitpy_path, state='readonly', 
                  width=30, font=self.font_style).pack(side=tk.LEFT, fill='x', expand=True, padx=5)
         
+        # Using plain tk.Button with NO color/font customization
         tk.Button(path_frame, text="Select Drive", command=self.select_circuitpy_path).pack(side=tk.LEFT, padx=5)
 
         # 2. Action Buttons Frame (Stays at top)
         action_frame = tk.Frame(self)
         action_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
         
+        # Using plain tk.Button with NO color/font customization
         tk.Button(action_frame, text="Load Config", command=self.load_config).pack(side=tk.LEFT, padx=(0, 5))
         
+        # NEW Button: Save to File (Local Save)
+        tk.Button(action_frame, text="Save to File", command=self.save_config_to_file).pack(side=tk.LEFT, padx=5)
+        
+        # Using plain tk.Button with NO color/font customization
         tk.Button(action_frame, text="Save to Device", command=self.save_config).pack(side=tk.LEFT, padx=5)
 
 
@@ -131,7 +165,7 @@ class ConfigApp(tk.Tk):
             self.entries[section] = {}
             for key, default_val in defaults.items():
                 # Key Label
-                label_text = key.replace('_', ' ').title()
+                label_text = self._format_label_text(key)
                 
                 tk.Label(scrollable_frame, text=f"{label_text}:", font=self.font_style).grid(
                     row=row_idx, column=0, sticky="w", padx=10, pady=2)
@@ -146,7 +180,6 @@ class ConfigApp(tk.Tk):
                     initial_choice = str(default_val) if str(default_val) in SENSOR_CHOICES else SENSOR_CHOICES[0]
                     var.set(initial_choice)
                     widget = tk.OptionMenu(scrollable_frame, var, *SENSOR_CHOICES)
-                    # Note: tk.OptionMenu must still use .config() for size/font
                     widget.config(width=37, font=self.font_style) 
                 
                 elif isinstance(default_val, bool):
@@ -167,6 +200,7 @@ class ConfigApp(tk.Tk):
                 
                 row_idx += 1
                 
+        # 4. Footer Frame (AT THE END)
         path_footer = tk.Frame(self, padx=10, pady=10, relief=tk.GROOVE, bd=1)
         path_footer.grid(row=3, column=0, sticky="ew", padx=10, pady=5)
         
@@ -234,10 +268,55 @@ class ConfigApp(tk.Tk):
             self.circuitpy_path.set(directory)
             self.load_config()
 
+    # --- Data Collection Helper ---
+    def _get_data_from_ui(self):
+        """
+        Collects data from UI, validates, and casts values to correct types.
+        
+        MODIFIED: Returns a flat dictionary and converts booleans to strings 
+        "True" or "False" as requested.
+        """
+        data_to_save = {} # This will be the flat dictionary
+        for section, defaults in DEFAULT_SETTINGS.items():
+            for key, default_val in defaults.items():
+                ui_value = self.entries[section][key].get().strip()
+                
+                # --- Type Casting and Validation ---
+                if isinstance(default_val, bool):
+                    # Convert to string "True" or "False" regardless of original type
+                    lower_value = ui_value.lower()
+                    if lower_value == 'true':
+                        data_to_save[key] = "True" # Store as string "True"
+                    elif lower_value == 'false':
+                        data_to_save[key] = "False" # Store as string "False"
+                    else:
+                        raise ValueError(f"Value for '{key}' must be 'True' or 'False' (case-insensitive). Found: '{ui_value}'")
+                
+                elif isinstance(default_val, int):
+                    try:
+                        data_to_save[key] = int(ui_value)
+                    except ValueError:
+                        raise ValueError(f"Value for '{key}' must be an integer (e.g., 205). Found: '{ui_value}'")
+                
+                elif isinstance(default_val, float):
+                    try:
+                        data_to_save[key] = float(ui_value)
+                    except ValueError:
+                        raise ValueError(f"Value for '{key}' must be a decimal number (e.g., 0.5). Found: '{ui_value}'")
+                
+                else:
+                    # Keep as string for everything else (SSID, passwords, URLs, pins, sensor names)
+                    data_to_save[key] = ui_value
+        return data_to_save
+
     # --- Load/Save Handlers using tomli/tomli_w ---
 
     def load_config(self):
-        """Loads settings.toml using tomli and updates the UI."""
+        """
+        Loads settings.toml using tomli and updates the UI.
+        
+        MODIFIED: Now expects a flat TOML file structure.
+        """
         path = self.circuitpy_path.get()
         toml_path = os.path.join(path, CONFIG_FILENAME)
         
@@ -248,15 +327,16 @@ class ConfigApp(tk.Tk):
         try:
             # tomli requires 'rb' (read binary) mode
             with open(toml_path, 'rb') as f: 
-                loaded_data = tomli.load(f)
+                loaded_data = tomli.load(f) # loaded_data is now a flat dict
             
-            # Update UI entries with loaded data, converting values back to string
+            # Update UI entries with loaded data, mapping flat keys back to nested UI structure
             for section, keys in self.entries.items():
-                if section in loaded_data:
-                    for key, var in keys.items():
-                        if key in loaded_data[section]:
-                            # Convert any loaded value (int, float, str, bool) to string for the StringVar
-                            var.set(str(loaded_data[section][key]))
+                for key, var in keys.items():
+                    # Check the flat dictionary for the key
+                    if key in loaded_data:
+                        # Convert any loaded value (int, float, str, bool) to string for the StringVar
+                        # This handles "True"/"False" strings and other types correctly.
+                        var.set(str(loaded_data[key]))
                                     
             messagebox.showinfo("Load Success", f"Configuration loaded from {CONFIG_FILENAME} on the device.")
 
@@ -268,7 +348,7 @@ class ConfigApp(tk.Tk):
             print(f"Error loading config: {e}")
 
     def save_config(self):
-        """Saves current UI values to settings.toml using tomli_w."""
+        """Saves current UI values to settings.toml on the CIRCUITPY device."""
         path = self.circuitpy_path.get()
         if not os.path.exists(path) or not self._is_circuitpy_device(path):
             messagebox.showwarning("Save Error", "Please select a valid CIRCUITPY device path first.")
@@ -277,51 +357,53 @@ class ConfigApp(tk.Tk):
         toml_path = os.path.join(path, CONFIG_FILENAME)
 
         try:
-            # 1. Collect data from UI and cast back to their original types (bool, int, float, str)
-            data_to_save = {}
-            for section, defaults in DEFAULT_SETTINGS.items():
-                data_to_save[section] = {}
-                for key, default_val in defaults.items():
-                    ui_value = self.entries[section][key].get().strip()
-                    
-                    # --- Type Casting and Validation ---
-                    if isinstance(default_val, bool):
-                        lower_value = ui_value.lower()
-                        if lower_value == 'true':
-                            data_to_save[section][key] = True
-                        elif lower_value == 'false':
-                            data_to_save[section][key] = False
-                        else:
-                            # Added validation for boolean inputs
-                            raise ValueError(f"Value for '{key}' must be 'True' or 'False' (case-insensitive). Found: '{ui_value}'")
-                    
-                    elif isinstance(default_val, int):
-                        try:
-                            data_to_save[section][key] = int(ui_value)
-                        except ValueError:
-                            raise ValueError(f"Value for '{key}' must be an integer (e.g., 205). Found: '{ui_value}'")
-                    
-                    elif isinstance(default_val, float):
-                        try:
-                            data_to_save[section][key] = float(ui_value)
-                        except ValueError:
-                            raise ValueError(f"Value for '{key}' must be a decimal number (e.g., 0.5). Found: '{ui_value}'")
-                    
-                    else:
-                        # Keep as string for everything else (SSID, passwords, URLs, pins, sensor names)
-                        data_to_save[section][key] = ui_value
+            # _get_data_from_ui returns the flat dictionary with string booleans
+            data_to_save = self._get_data_from_ui() 
             
-            # 2. Write to file using tomli_w. It requires 'wb' (write binary) mode
+            # Write to file using tomli_w. Since data_to_save is flat, it writes without headers.
             with open(toml_path, 'wb') as f: 
                 tomli_w.dump(data_to_save, f)
                 
-            messagebox.showinfo("Save Success", f"Configuration successfully saved to:\n{toml_path}")
+            messagebox.showinfo("Save Success", f"Configuration successfully saved to device at:\n{toml_path}")
 
         except ValueError as e:
             messagebox.showerror("Validation Error", str(e))
         except Exception as e:
             messagebox.showerror("Save Error", f"Error saving config file. Is the drive writeable?\n{e}")
             print(f"Error saving config: {e}")
+
+    def save_config_to_file(self):
+        """Saves current UI values to a user-specified file on the host computer."""
+        try:
+            # 1. Collect data and validate types
+            data_to_save = self._get_data_from_ui() 
+        except ValueError as e:
+            messagebox.showerror("Validation Error", str(e))
+            return
+            
+        # 2. Open file dialog to choose save location
+        toml_path = filedialog.asksaveasfilename(
+            defaultextension=".toml",
+            initialfile=os.path.splitext(CONFIG_FILENAME)[0],
+            title="Save TOML Configuration File",
+            filetypes=[("TOML files", "*.toml"), ("All files", "*.*")]
+        )
+        
+        if not toml_path:
+            # User canceled the dialog
+            return
+
+        try:
+            # 3. Write to file using tomli_w. Since data_to_save is flat, it writes without headers.
+            with open(toml_path, 'wb') as f: 
+                tomli_w.dump(data_to_save, f)
+                
+            messagebox.showinfo("Save Success", f"Configuration successfully saved to:\n{toml_path}")
+
+        except Exception as e:
+            messagebox.showerror("Save Error", f"Error saving file:\n{e}")
+            print(f"Error saving config locally: {e}")
+
 
 if __name__ == "__main__":
     app = ConfigApp()

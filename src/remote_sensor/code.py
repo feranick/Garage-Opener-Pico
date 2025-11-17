@@ -1,11 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Environmental and remote sonar only
-# * v2025.11.14.2
+# * v2025.11.17.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.14.2"
+version = "2025.11.17.1"
 
 import wifi
 import time
@@ -57,21 +57,20 @@ if supervisor.runtime.safe_mode_reason is not None:
 class Conf:
     def __init__(self):
         try:
-            self.triggerDistance = float(os.getenv("triggerDistance"))
+            self.trigger_distance = float(os.getenv("trigger_distance"))
         except ValueError:
-            self.triggerDistance = 20.0
-            print(f"Warning: Invalid triggerDistance '{trig_dist_env}' in settings.toml. Using default.")
+            self.trigger_distance = 20.0
+            print(f"Warning: Invalid trigger_distance '{trig_dist_env}' in settings.toml. Using default.")
 
         try:
-            self.sensor1 = os.getenv("sensor1")
-            self.sensor1Pins = stringToArray(os.getenv("sensor1Pins"))
-            self.sensor1CorrectTemp = os.getenv("sensor1CorrectTemp")
+            self.sensor1_name = os.getenv("sensor1_name")
+            self.sensor1_pins = stringToArray(os.getenv("sensor1_pins"))
+            self.sensor1_correct_temp = os.getenv("sensor1_correct_temp")
         except ValueError:
-            self.sensor1 = None
-            self.sensor1Pins = None
-            self.sensor1CorrectTemp = "False"
+            self.sensor1_name = None
+            self.sensor1_pins = None
+            self.sensor1_correct_temp = "False"
             print(f"Warning: Invalid settings.toml. Using default.")
-
 
 ############################
 # Server
@@ -140,7 +139,7 @@ class GarageServer:
             state = self.sensors.checkStatusSonar()
             #label = self.sensors.setLabel(state)
             #temperature = self.sensors.getTemperature()
-            envData = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1Name, self.sensors.sensor1CorrectTemp)
+            envData = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1Name, self.sensors.sensor1correct_temp)
 
             data_dict = {
                 "state": state,
@@ -224,18 +223,28 @@ class GarageServer:
 class Sensors:
     def __init__(self, conf):
         self.sensDev = SensorDevices()
+        
+        # Sonar initialization
         self.sonar = None
+        try:
+            self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
+        except Exception as e:
+            print(f"Failed to initialize HCSR04: {e}")
+
+        self.trigger_distance = conf.trigger_distance
+        
+        # Sensor initialization
         self.envSensor1 = None
-        self.envSensor1Name = conf.sensor1
-        self.envSensor1Pins = conf.sensor1Pins
-        self.sensor1CorrectTemp = conf.sensor1CorrectTemp
+        self.envSensor1_name = conf.sensor1_name
+        self.envSensor1_pins = conf.sensor1_pins
+        self.sensor1_correct_temp = conf.sensor1_correct_temp
 
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
             print(f"Failed to initialize HCSR04: {e}")
 
-        self.trigDist = conf.triggerDistance
+        self.trigger_distance = conf.triggerDistance
         
         self.envSensor1 = self.sensDev.initSensor(conf.sensor1, conf.sensor1Pins)
 
@@ -246,10 +255,10 @@ class Sensors:
 
         self.numTimes = 1
         
-    def getEnvData(self, envSensor, envSensorName, correctTemp):
+    def getEnvData(self, envSensor, envSensor_name, correct_temp):
         t_cpu = microcontroller.cpu.temperature
         if not envSensor:
-            print(f"{envSensorName} not initialized. Using CPU temp with estimated offset.")
+            print(f"{envSensor_name} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
                         'RH': '--', 
@@ -271,7 +280,7 @@ class Sensors:
                         'HI': '--',
                         'type': 'CPU raw'}
         try:
-            envSensorData = self.sensDev.getSensorData(envSensor, envSensorName, correctTemp)
+            envSensorData = self.sensDev.getSensorData(envSensor, envSensor_name, correct_temp)
             delta_t = t_cpu - float(envSensorData['temperature'])
             if self.numTimes >= 2e+1:
                 self.numTimes = int(1e+1)
@@ -281,7 +290,7 @@ class Sensors:
             time.sleep(0.5)
             return envSensorData
         except:
-            print(f"{envSensorName} not available. Av CPU/MCP T diff: {self.avDeltaT}")
+            print(f"{envSensor_name} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
                     'RH': '--', 
@@ -302,7 +311,7 @@ class Sensors:
             try:
                 dist = self.sonar.distance
                 print("Distance: "+str(dist))
-                if dist < self.trigDist:
+                if dist < self.trigger_distance:
                     return "OPEN"
                 else:
                     return "CLOSED"
