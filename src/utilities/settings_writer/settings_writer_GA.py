@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # **********************************************
 # * PicoGarageOpener - settings.toml Editor
 # * Pico driven
