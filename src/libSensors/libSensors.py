@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.17.1
+# * v2025.11.17.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.17.1"
+libSensors_version = "2025.11.17.2"
 
 import time
 import busio
@@ -178,7 +178,11 @@ class SensorDevices:
                 
     # Temperature correction for MAX31865
     def correct_tempMAX31865(self, mt):
-        return mt
+        M = 1.001009387
+        B = -2.432898674
+        
+        rt_pred = mt * M + B
+        return rt_pred
                 
     ##############################################
     # BME280
