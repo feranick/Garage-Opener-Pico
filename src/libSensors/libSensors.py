@@ -178,8 +178,8 @@ class SensorDevices:
                 
     # Temperature correction for MAX31865
     def correct_tempMAX31865(self, mt):
-        M = 1.001009387
-        B = -2.432898674
+        M = 1.000365055
+        B = -2.326256018
         
         rt_pred = mt * M + B
         return rt_pred
