@@ -139,7 +139,7 @@ class GarageServer:
             state = self.sensors.checkStatusSonar()
             #label = self.sensors.setLabel(state)
             #temperature = self.sensors.getTemperature()
-            envData = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1Name, self.sensors.sensor1correct_temp)
+            envData = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
 
             data_dict = {
                 "state": state,
