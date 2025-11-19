@@ -220,10 +220,10 @@ async function updateStatus() {
         document.getElementById('locIAQ').style.color = getIAQColor(data.locIAQ);
         document.getElementById('locTVOC').style.display = 'block';
         document.getElementById('locTVOC_label').style.display = 'block';
-        document.getElementById('locTVOC').textContent = data.locTVOC;
+        document.getElementById('locTVOC').textContent = data.locTVOC + " ppb";
         document.getElementById('loceCO2').style.display = 'block';
         document.getElementById('loceCO2_label').style.display = 'block';
-        document.getElementById('loceCO2').textContent = data.loceCO2;
+        document.getElementById('loceCO2').textContent = data.loceCO2 + " ppm";
         }
         
     if(data.remoteIAQ !== "--") {
@@ -233,10 +233,10 @@ async function updateStatus() {
         document.getElementById('remoteIAQ').style.color = getIAQColor(data.locIAQ);
         document.getElementById('remoteTVOC').style.display = 'block';
         document.getElementById('remoteTVOC_label').style.display = 'block';
-        document.getElementById('remoteTVOC').textContent = data.remoteTVOC;
+        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + "ppb";
         document.getElementById('remoteeCO2').style.display = 'block';
         document.getElementById('remoteeCO2_label').style.display = 'block';
-        document.getElementById("remoteeCO2").textContent = data.remoteeCO2;
+        document.getElementById("remoteeCO2").textContent = data.remoteeCO2 + " ppm";
         }
     
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
