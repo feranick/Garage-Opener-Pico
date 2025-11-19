@@ -323,7 +323,7 @@ class ConfigApp(tk.Tk):
 
     # --- Load/Save Handlers using tomli/tomli_w ---
 
-    def load_config(self):
+    def load_config(self, fromDevice):
         """
         Loads settings.toml using tomli and updates the UI.
         """
