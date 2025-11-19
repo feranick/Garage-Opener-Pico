@@ -244,9 +244,9 @@ class Sensors:
         except Exception as e:
             print(f"Failed to initialize HCSR04: {e}")
 
-        self.trigger_distance = conf.triggerDistance
+        self.trigger_distance = conf.trigger_distance
         
-        self.envSensor1 = self.sensDev.initSensor(conf.sensor1, conf.sensor1Pins)
+        self.envSensor1 = self.sensDev.initSensor(conf.sensor1_name, conf.sensor1_pins)
 
         if self.envSensor1 != None:
             if isinstance(self.envSensor1, list):
