@@ -230,10 +230,10 @@ async function updateStatus() {
         document.getElementById('remoteIAQ').style.display = 'block';
         document.getElementById('remoteIAQ_label').style.display = 'block';
         document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
-        document.getElementById('remoteIAQ').style.color = getIAQColor(data.locIAQ);
+        document.getElementById('remoteIAQ').style.color = getIAQColor(data.remoteIAQ);
         document.getElementById('remoteTVOC').style.display = 'block';
         document.getElementById('remoteTVOC_label').style.display = 'block';
-        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + "ppb";
+        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
         document.getElementById('remoteeCO2').style.display = 'block';
         document.getElementById('remoteeCO2_label').style.display = 'block';
         document.getElementById("remoteeCO2").textContent = data.remoteeCO2 + " ppm";
@@ -435,13 +435,19 @@ function getIAQColor(value) {
 */
 
 function getIAQColor(value) {
-    switch (value) {
-        case 1: return "green";
-        case 2: return "yellow";
-        case 3: return "orange";
-        case 4: return "red";
-        case 5: return "purple";
-        }
+    if (value == 1) {
+        return "green";
+    } else if (value == 2) {
+        return "yellow";
+    } else if (value == 3) {
+        return "orange";
+    } else if (value == 4) {
+        return "red";
+    } else if (value == 5) {
+        return "purple";
+    }    else {
+        return "blue";
+    }
     }
 
 function doorColor(state) {
