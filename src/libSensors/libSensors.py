@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.18.1
+# * v2025.11.19.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.18.1"
+libSensors_version = "2025.11.19.1"
 
 import time
 import busio
@@ -98,6 +98,8 @@ class SensorDevices:
         rh_envSensor = float(envSensor[0].relative_humidity)
         envSensor[1].temperature_compensation = t_envSensor
         envSensor[1].humidity_compensation = rh_envSensor
+        if correct_temp.lower() == 'true':
+            t_envSensor = self.correct_tempENS160_AHT21(t_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': "--",
@@ -108,6 +110,14 @@ class SensorDevices:
                 'eCO2': envSensor[1]. eCO2,
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
+    
+    # Temperature correction for AHT21/ENS160
+    def correct_tempENS160_AHT21(self, mt):
+        M = 0.993859404
+        B = -5.365396883
+        
+        rt_pred = mt * M + B
+        return rt_pred
     
     ##############################################
     # MCP9808
