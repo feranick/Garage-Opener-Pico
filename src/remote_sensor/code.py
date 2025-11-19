@@ -223,29 +223,23 @@ class GarageServer:
 class Sensors:
     def __init__(self, conf):
         self.sensDev = SensorDevices()
-        
+
         # Sonar initialization
         self.sonar = None
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
+            print(f"HCSR04 sonar pins initialized.")
         except Exception as e:
             print(f"Failed to initialize HCSR04: {e}")
 
         self.trigger_distance = conf.trigger_distance
-        
+
         # Sensor initialization
         self.envSensor1 = None
         self.envSensor1_name = conf.sensor1_name
         self.envSensor1_pins = conf.sensor1_pins
         self.sensor1_correct_temp = conf.sensor1_correct_temp
 
-        try:
-            self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
-        except Exception as e:
-            print(f"Failed to initialize HCSR04: {e}")
-
-        self.trigger_distance = conf.trigger_distance
-        
         self.envSensor1 = self.sensDev.initSensor(conf.sensor1_name, conf.sensor1_pins)
 
         if self.envSensor1 != None:
@@ -258,14 +252,14 @@ class Sensors:
             self.avDeltaT = 0
 
         self.numTimes = 1
-        
+
     def getEnvData(self, envSensor, envSensor_name, correct_temp):
         t_cpu = microcontroller.cpu.temperature
         if not envSensor:
             print(f"{envSensor_name} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
-                        'RH': '--', 
+                        'RH': '--',
                         'pressure': '--',
                         'gas': '--',
                         'IAQ': '--',
@@ -275,7 +269,7 @@ class Sensors:
                         'type': 'CPU adj.'}
             else:
                 return {'temperature': f"{round(t_cpu, 1)}",
-                        'RH': '--', 
+                        'RH': '--',
                         'pressure': '--',
                         'gas': '--',
                         'IAQ': '--',
@@ -297,15 +291,15 @@ class Sensors:
             print(f"{envSensor_name} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
-                    'RH': '--', 
-                    'pressure': '--',  
+                    'RH': '--',
+                    'pressure': '--',
                     'gas': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
                     'HI': '--',
                     'type': 'CPU adj'}
-                    
+
     def checkStatusSonar(self):
         if not self.sonar:
             print("Sonar not initialized.")
@@ -342,7 +336,7 @@ def stringToArray(string):
     else:
         print("Warning: Initial string-array not found in settings.toml")
         return []
-        
+
 ############################
 # Main
 ############################
