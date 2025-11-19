@@ -1,11 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Environmental and remote sonar only
-# * v2025.11.18.1
+# * v2025.11.19.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.18.1"
+version = "2025.11.19.1"
 
 import wifi
 import time
@@ -147,7 +147,6 @@ class GarageServer:
                 "RH": envData['RH'],
                 "pressure": envData['pressure'],
                 "HI": envData['HI'],
-                "gas": envData['gas'],
                 "IAQ": envData['IAQ'],
                 "TVOC": envData['TVOC'],
                 "eCO2": envData['eCO2'],
@@ -261,7 +260,6 @@ class Sensors:
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
                         'RH': '--',
                         'pressure': '--',
-                        'gas': '--',
                         'IAQ': '--',
                         'TVOC': '--',
                         'eCO2': '--',
@@ -271,7 +269,6 @@ class Sensors:
                 return {'temperature': f"{round(t_cpu, 1)}",
                         'RH': '--',
                         'pressure': '--',
-                        'gas': '--',
                         'IAQ': '--',
                         'TVOC': '--',
                         'eCO2': '--',
@@ -293,7 +290,6 @@ class Sensors:
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
                     'RH': '--',
                     'pressure': '--',
-                    'gas': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
