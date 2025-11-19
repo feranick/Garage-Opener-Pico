@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.18.1
+# * v2025.11.19.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.18.1"
+version = "2025.11.19.1"
 
 import wifi
 import time
@@ -187,7 +187,6 @@ class GarageServer:
                 "locTemp": localData['temperature'],
                 "locRH": localData['RH'],
                 "locHI": localData['HI'],
-                "locGas": localData['gas'],
                 "locIAQ": localData['IAQ'],
                 "locTVOC": localData['TVOC'],
                 "loceCO2": localData['eCO2'],
@@ -381,7 +380,6 @@ class Sensors:
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 
                     'RH': '--', 
                     'pressure': '--', 
-                    'gas': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
@@ -391,7 +389,6 @@ class Sensors:
                 return {'temperature': f"{round(t_cpu, 1)}", 
                     'RH': '--', 
                     'pressure': '--', 
-                    'gas': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
@@ -413,7 +410,6 @@ class Sensors:
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 
                     'RH': '--', 
                     'pressure': '--',  
-                    'gas': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',

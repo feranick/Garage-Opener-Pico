@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.19.1
+# * v2025.11.19.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.19.1"
+libSensors_version = "2025.11.19.3"
 
 import time
 import busio
@@ -68,7 +68,6 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': "--",
-                'gas': '--',
                 'IAQ': '--',
                 'TVOC': '--',
                 'eCO2': '--',
@@ -103,11 +102,10 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': "--",
-                'gas': '--',
                 'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
-                'IAQ': envSensor[1].AQI,
-                'TVOC': envSensor[1].TVOC,
-                'eCO2': envSensor[1]. eCO2,
+                'IAQ': f"{envSensor[1].AQI}",
+                'TVOC': f"{envSensor[1].TVOC}",
+                'eCO2': f"{envSensor[1]. eCO2}",
                 'type': 'sensor',
                 'libSensors_version': libSensors_version}
     
@@ -137,7 +135,6 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': "--",
                 'pressure': "--",
-                'gas': '--',
                 'IAQ': '--',
                 'TVOC': '--',
                 'eCO2': '--',
@@ -177,7 +174,6 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': "--",
                 'pressure': "--",
-                'gas': '--',
                 'aqi': '--',
                 'IAQ': '--',
                 'TVOC': '--',
@@ -217,7 +213,6 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': f"{p_envSensor}",
-                'gas': '--',
                 'IAQ': '--',
                 'TVOC': '--',
                 'eCO2': '--',
@@ -323,7 +318,6 @@ class SensorDevices:
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
                         'RH': '--',
                         'pressure': '--',
-                        'gas': '--',
                         'IAQ': '--',
                         'TVOC': '--',
                         'eCO2': '--',
@@ -334,7 +328,6 @@ class SensorDevices:
                 return {'temperature': f"{round(t_cpu, 1)} ",
                         'RH': '--',
                         'pressure': '--',
-                        'gas': '--',
                         'IAQ': '--',
                         'TVOC': '--',
                         'eCO2': '--',
@@ -357,7 +350,6 @@ class SensorDevices:
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
                     'RH': '--',
                     'pressure': '--',
-                    'gas': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
