@@ -206,8 +206,8 @@ async function updateStatus() {
 
     document.getElementById("locTemp").textContent = data.locTemp + " \u00B0C";
     document.getElementById("remoteTemp").textContent = data.remoteTemp + " \u00B0C";
-    document.getElementById("locRH").textContent = data.locRH + "%";
-    document.getElementById("remoteRH").textContent = data.remoteRH + "%";
+    document.getElementById("locRH").textContent = data.locRH + " %";
+    document.getElementById("remoteRH").textContent = data.remoteRH + " %";
     document.getElementById("locHI").textContent = data.locHI + " \u00B0C";
     document.getElementById("remoteHI").textContent = data.remoteHI + " \u00B0C";
     document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";

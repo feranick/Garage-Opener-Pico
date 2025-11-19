@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.17.2
+# * v2025.11.18.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.17.2"
+libSensors_version = "2025.11.18.1"
 
 import time
 import busio
@@ -380,7 +380,16 @@ class SensorDevices:
     
         tf = t*9/5 + 32
         
-        if tf >= 80:
+        C1 = 0.5
+        C2 = 61.0
+        C3 = 68.0
+        C4 = 1.2
+        C5 = 0.094
+        
+        hi = C1 * (tf + C2 + \
+            ((tf - C3) * C4) + (rh * C5))
+        
+        if hi >= 80:
             C1 = -42.379
             C2 = 2.04901523
             C3 = 10.14333127
@@ -398,16 +407,7 @@ class SensorDevices:
                 C6 * (rh**2) + \
                 C7 * (tf**2) * rh + \
                 C8 * (rh**2) * tf + \
-                C7 * (tf**2) * (rh**2)
-        else:
-            C1 = 0.5
-            C2 = 61.0
-            C3 = 68.0
-            C4 = 1.2
-            C5 = 0.094
-        
-            hi = C1 * (tf + C2 + \
-                ((tf - C3) * C4) + (rh * C5))
+                C9 * (tf**2) * (rh**2)
                 
         return round((hi - 32) * 5/9 , 1)
     
