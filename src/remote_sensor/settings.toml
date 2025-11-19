@@ -3,12 +3,11 @@ CIRCUITPY_WIFI_PASSWORD = "password"
 CIRCUITPY_WEB_INSTANCE_NAME = "GarageOpener-Sensor"
 CIRCUITPY_WEB_API_PASSWORD="passw0rd"
 CIRCUITPY_WEB_API_PORT=206
-triggerDistance = 20
-sensorTemperatureOffset = 0
+trigger_distance = 20
 
-sensor1 = "AHT21"
-sensor1Pins = "17,16"
-sensor1CorrectTemp = "False"
+sensor1_name = "AHT21"
+sensor1_pins = "17,16"
+sensor1_correct_temp = "False"
 
 #sensor1 = "BME280"
 #sensor1Pins = "18,19,16,17"
