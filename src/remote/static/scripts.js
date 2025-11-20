@@ -217,17 +217,19 @@ async function updateStatus() {
         document.getElementById('locIAQ').style.display = 'block';
         document.getElementById('locIAQ_label').style.display = 'block';
         document.getElementById('locIAQ').textContent = data.locIAQ;
-        document.getElementById('locIAQ').style.color = getIAQColor(data.locIAQ);
-        }
-    if(data.locTVOC !== "--") {
-        document.getElementById('locTVOC').style.display = 'block';
-        document.getElementById('locTVOC_label').style.display = 'block';
-        document.getElementById('locTVOC').textContent = data.locTVOC + " ppb";
+        document.getElementById('locIAQ').style.color = getIAQcolor(data.locIAQ);
         }
     if(data.loceCO2 !== "--") {
         document.getElementById('loceCO2').style.display = 'block';
         document.getElementById('loceCO2_label').style.display = 'block';
         document.getElementById('loceCO2').textContent = data.loceCO2 + " ppm";
+        document.getElementById('loceCO2').style.color = getCO2color(data.loceCO2);
+        }
+    if(data.locTVOC !== "--") {
+        document.getElementById('locTVOC').style.display = 'block';
+        document.getElementById('locTVOC_label').style.display = 'block';
+        document.getElementById('locTVOC').textContent = data.locTVOC + " ppb";
+        document.getElementById('locTVOC').style.color = getTVOCcolor(data.locTVOC);
         }
         
     if(data.remoteIAQ !== "--") {
@@ -236,15 +238,17 @@ async function updateStatus() {
         document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
         document.getElementById('remoteIAQ').style.color = getIAQColor(data.remoteIAQ);
         }
-    if(data.remoteTVOC !== "--") {
-        document.getElementById('remoteTVOC').style.display = 'block';
-        document.getElementById('remoteTVOC_label').style.display = 'block';
-        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
-        }
     if(data.remoteeCO2 !== "--") {
         document.getElementById('remoteeCO2').style.display = 'block';
         document.getElementById('remoteeCO2_label').style.display = 'block';
         document.getElementById("remoteeCO2").textContent = data.remoteeCO2 + " ppm";
+        document.getElementById('remoteeCO2').style.color = getCO2color(data.remoteeCO2);
+        }
+    if(data.remoteTVOC !== "--") {
+        document.getElementById('remoteTVOC').style.display = 'block';
+        document.getElementById('remoteTVOC_label').style.display = 'block';
+        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
+        document.getElementById('remoteTVOC').style.color = getTVOCcolor(data.remoteTVOC);
         }
     
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
@@ -442,7 +446,7 @@ function getIAQColor(value) {
 }
 */
 
-function getIAQColor(value) {
+function getIAQcolor(value) {
     if (value == 1) {
         return "green";
     } else if (value == 2) {
@@ -455,8 +459,48 @@ function getIAQColor(value) {
         return "purple";
     }    else {
         return "blue";
+    }}
+    
+function getCO2color(value) {
+    if (value >= 0 && value <= 400) {
+        return "LimeGreen";
+    } else if (value >= 401 && value < 800) {
+        return "green";
+    } else if (value >= 801 && value < 1000) {
+        return "yellow";
+    } else if (value >= 1001 && value < 2000) {
+        return "orange";
+    } else if (value >= 2001 && value < 5000) {
+        return "red";
+    } else if (value >= 5000 && value < 1e9) {
+        return "purple";
+    } else {
+        return "black";
     }
+}
+
+function getTVOCcolor(conc_ppb) {
+    // Using isobtylene as reference with MW = 56.1 g/mol, the conversion to ug/m^3 uses this fomula:
+    // conc_ppb = 24.45 * conc_ug-m^3 / (0.001 * MW_g-mol)
+    // conc_ug-m^3 = conc_ppb/435.8e-6
+    // conc_ug-m^3 = 2.295e3 * conc_ppb
+    
+    value = 2.295e3 * conc_ppb
+    
+    if (value >= 0 && value <= 300) {
+        return "green";
+    } else if (value >= 301 && value < 500) {
+        return "yellow";
+    } else if (value >= 501 && value < 1000) {
+        return "orange";
+    } else if (value >= 1001 && value < 3000) {
+        return "red";
+    } else if (value >= 3001 && value < 1e9) {
+        return "purple";
+    } else {
+        return "black";
     }
+}
 
 function doorColor(state) {
     if (state == "OPEN") {
@@ -513,6 +557,7 @@ function getWeatherDescription(code) {
  * Calculates the WetBulbTemperature from temp and RH.
  */
 function getWetBulbTemp(temp, rh, type) {
+    // Stull formula for Wet Bulb Temperature
     if (type === 'sensor') {
         const T = parseFloat(temp);
         const RH = parseFloat(rh);
