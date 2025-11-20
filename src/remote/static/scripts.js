@@ -218,9 +218,13 @@ async function updateStatus() {
         document.getElementById('locIAQ_label').style.display = 'block';
         document.getElementById('locIAQ').textContent = data.locIAQ;
         document.getElementById('locIAQ').style.color = getIAQColor(data.locIAQ);
+        }
+    if(data.locTVOC !== "--") {
         document.getElementById('locTVOC').style.display = 'block';
         document.getElementById('locTVOC_label').style.display = 'block';
         document.getElementById('locTVOC').textContent = data.locTVOC + " ppb";
+        }
+    if(data.loceCO2 !== "--") {
         document.getElementById('loceCO2').style.display = 'block';
         document.getElementById('loceCO2_label').style.display = 'block';
         document.getElementById('loceCO2').textContent = data.loceCO2 + " ppm";
@@ -231,9 +235,13 @@ async function updateStatus() {
         document.getElementById('remoteIAQ_label').style.display = 'block';
         document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
         document.getElementById('remoteIAQ').style.color = getIAQColor(data.remoteIAQ);
+        }
+    if(data.remoteTVOC !== "--") {
         document.getElementById('remoteTVOC').style.display = 'block';
         document.getElementById('remoteTVOC_label').style.display = 'block';
         document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
+        }
+    if(data.remoteeCO2 !== "--") {
         document.getElementById('remoteeCO2').style.display = 'block';
         document.getElementById('remoteeCO2_label').style.display = 'block';
         document.getElementById("remoteeCO2").textContent = data.remoteeCO2 + " ppm";
