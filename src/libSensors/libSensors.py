@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.19.3
+# * v2025.11.19.4
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.19.3"
+libSensors_version = "2025.11.19.4"
 
 import time
 import busio
@@ -112,7 +112,8 @@ class SensorDevices:
     # Temperature correction for AHT21/ENS160
     def correct_tempENS160_AHT21(self, mt):
         M = 0.993859404
-        B = -5.365396883
+        #B = -5.365396883
+        B - -3.5
         
         rt_pred = mt * M + B
         return rt_pred
@@ -260,7 +261,7 @@ class SensorDevices:
         
         if correct_temp.lower() == 'true':
             t_envSensor = self.correct_tempBME680(t_envSensor,rh_envSensor)
-        aqi_envSensor = self.getIAQBME680(rh_envSensor, gas_envSensor)
+        aqi_envSensor = self.getIAQBME680(rh_envSensor, gas_envSensor, True)
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor,1)}",
                 'pressure': f"{p_envSensor}",
@@ -290,8 +291,12 @@ class SensorDevices:
         return rt_pred
     
     # IAQ estimator for BME680
-    def getIAQBME680(self, RH, R_gas):
-        S_max = 400
+    def getIAQBME680(self, RH, R_gas, isShortScale):
+        
+        if isShortScale:
+            S_max = 5 # for 1-5 scale
+        else:
+            S_max = 400 # for regular scale
     
         SG_max = 0.75 * S_max
         R_min = 750 # This is the saturation value in Ohm
@@ -305,7 +310,11 @@ class SensorDevices:
         
         # We are using the reversed scale 0 -> 100
         IAQ = int(S_max-(SG + SH))
-        return IAQ
+        
+        if isShortScale:
+            return IAQ + 1 # for 1-5 scale
+        else:
+            return IAQ # for regular scale
                 
     ##############################################
     # Data Collection
