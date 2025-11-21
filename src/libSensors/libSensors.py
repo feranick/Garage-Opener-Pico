@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.19.4
+# * v2025.11.21.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.19.4"
+libSensors_version = "2025.11.21.1"
 
 import time
 import busio
@@ -113,7 +113,7 @@ class SensorDevices:
     def correct_tempENS160_AHT21(self, mt):
         M = 0.993859404
         #B = -5.365396883
-        B - -3.5
+        B = -3.5
         
         rt_pred = mt * M + B
         return rt_pred

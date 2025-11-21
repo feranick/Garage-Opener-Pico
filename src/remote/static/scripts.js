@@ -236,7 +236,7 @@ async function updateStatus() {
         document.getElementById('remoteIAQ').style.display = 'block';
         document.getElementById('remoteIAQ_label').style.display = 'block';
         document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
-        document.getElementById('remoteIAQ').style.color = getIAQColor(data.remoteIAQ);
+        document.getElementById('remoteIAQ').style.color = getIAQcolor(data.remoteIAQ);
         }
     if(data.remoteeCO2 !== "--") {
         document.getElementById('remoteeCO2').style.display = 'block';
@@ -427,7 +427,7 @@ const uvColorRanges = [
 ];
 
 /*
-function getIAQColor(value) {
+function getIAQcolor(value) {
     if (value >= 0 && value <= 50) {
         return "green";
     } else if (value >= 51 && value < 100) {
@@ -479,7 +479,7 @@ function getCO2color(value) {
     }
 }
 
-function getTVOCcolor(conc_ppb) {
+function getTVOCcolor(value) {
     if (value >= 0 && value <= 65) {
         return "cyan";
     } else if (value >= 66 && value < 220) {
