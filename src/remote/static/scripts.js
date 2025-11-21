@@ -448,17 +448,17 @@ function getIAQColor(value) {
 
 function getIAQcolor(value) {
     if (value == 1) {
-        return "green";
+        return "cyan";
     } else if (value == 2) {
-        return "yellow";
+        return "green";
     } else if (value == 3) {
-        return "orange";
+        return "yellow";
     } else if (value == 4) {
-        return "red";
+        return "orange";
     } else if (value == 5) {
-        return "purple";
+        return "red";
     }    else {
-        return "blue";
+        return "black";
     }}
     
 function getCO2color(value) {
@@ -480,23 +480,16 @@ function getCO2color(value) {
 }
 
 function getTVOCcolor(conc_ppb) {
-    // Using isobtylene as reference with MW = 56.1 g/mol, the conversion to ug/m^3 uses this fomula:
-    // conc_ppb = 24.45 * conc_ug-m^3 / (0.001 * MW_g-mol)
-    // conc_ug-m^3 = conc_ppb/435.8e-6
-    // conc_ug-m^3 = 2.295e3 * conc_ppb
-    
-    value = 2.295e3 * conc_ppb
-    
-    if (value >= 0 && value <= 300) {
+    if (value >= 0 && value <= 65) {
+        return "cyan";
+    } else if (value >= 66 && value < 220) {
         return "green";
-    } else if (value >= 301 && value < 500) {
+    } else if (value >= 221 && value < 660) {
         return "yellow";
-    } else if (value >= 501 && value < 1000) {
+    } else if (value >= 661 && value < 2200) {
         return "orange";
-    } else if (value >= 1001 && value < 3000) {
+    } else if (value >= 2201 && value < 1e9) {
         return "red";
-    } else if (value >= 3001 && value < 1e9) {
-        return "purple";
     } else {
         return "black";
     }
