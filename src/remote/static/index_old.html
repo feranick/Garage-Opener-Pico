@@ -27,7 +27,7 @@ body {
     font-weight: bold;
     margin: 10px auto 10px;
     height: 100px;
-    width: 150px;
+    width: 250px;
     text-align: center;
     border-radius: 15px;
     border: none;
@@ -37,7 +37,7 @@ body {
     transition: background-color 0.3s;
 }
 #Status:hover, #Submit:hover { background-color: #1e62a0; }
-#Submit { height: 100px; background-color: orange; }
+#Submit { height: 150px; background-color: orange; }
 
 #locIAQ, #locIAQ_label, #locTVOC, #locTVOC_label, #loceCO2, #loceCO2_label, #remoteIAQ, #remoteIAQ_label, #remoteTVOC, #remoteTVOC_label, #remoteeCO2, #remoteeCO2_label {
     display: none;
@@ -54,7 +54,7 @@ fieldset {
     }
     .two-column-layout {
     display: flex;
-    gap: 10px;
+    gap: 20px;
     text-align: left;
     font-size: 18px;
     width: 100%;
@@ -69,16 +69,7 @@ fieldset {
     font-weight: 700;
     color: #00008B;
     }
-    small {
-        display: block; margin-top: 5px;
-    }
-#buttons-fieldset {
-    background-color: #f0f0f0;
-    }
-#buttons-two-cols {
-    gap: 5px; text-align: center;
-    }
-
+    small { display: block; margin-top: 5px; }
 </style>
 <script type="text/javascript" src="scripts.js" ></script>
 
@@ -126,21 +117,15 @@ fieldset {
         </div>
     </div>
 </fieldset>
-<fieldset id="buttons-fieldset">
-<div class="two-column-layout" id="buttons-two-cols">
-    <div class="column">
-        <form name="submitForm">
-            <input type="button" id="Submit" value="Loading..." onclick="waitWarn(0)" />
-        </form>
-    </div>
-    <div class="column">
-        <form name="statusForm">
-        <input type="button" id="Status" value="Update Status" onclick="waitWarn(1)" />
-        </form>
-    </div>
-</div>
-<br><label id="warnLabel"></label>
-</fieldset>
+
+<form name="submitForm">
+    <input type="button" id="Submit" value="Loading..." onclick="waitWarn(0)" />
+</form>
+<!--Door status is: <span id="door_status">Loading...</span>-->
+<form name="statusForm">
+    <input type="button" id="Status" value="Update Status" onclick="waitWarn(1)" />
+    <br><label id="warnLabel"></label>
+</form>
 
 <fieldset>
 Temperature: <span id="ext_temperature">...</span>
