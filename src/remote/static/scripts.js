@@ -1,4 +1,7 @@
 let coords = null;
+let zipcode = null;
+let country = null;
+let ow_api_key = null;
 
 ////////////////////////////////////
 // Get UTC Time
@@ -20,10 +23,11 @@ async function getFeed(url) {
 //////////////////////////////////////////////
 // Ger OpenWeather location and weather data
 //////////////////////////////////////////////
-async function getCoords(zipcode, country, ow_api_key) {
+async function getCoords() {
     geo_url = "https://api.openweathermap.org/geo/1.0/zip?zip="+zipcode+","+country+"&appid="+ow_api_key;
     let data = (await getFeed(geo_url));
-    return [data["lat"], data["lon"]];
+    coords = [data["lat"], data["lon"]];
+    //return [data["lat"], data["lon"]];
     }
 
 async function getOM(coords) {
@@ -182,12 +186,16 @@ async function fetchData() {
 //////////////////////////////////////////////
 // Logic when pushing Update Status button
 //////////////////////////////////////////////
-async function updateStatus() {
+
+async function updateStatus(isStartup) {
     //document.getElementById("Submit").value = "Door \n\n Loading...";
     document.getElementById("Status").value = "Loading...";
     //document.getElementById("warnLabel").textContent = "Testing";
     
     await updateIndoor();
+    if (isStartup == true) {
+        console.log("Setting up Coords");
+        await getCoords();}
     await updateOutdoor();
     
     //document.getElementById("warnLabel").textContent = "Update Status: \n Ready";
@@ -199,6 +207,12 @@ async function updateStatus() {
     
 async function updateIndoor() {
     data = await fetchData();
+    zipcode = data.zipcode;
+    country = data.country;
+    ow_api_key = data.ow_api_key;
+    
+    datetime = getCurrentDateTimeUTC(data.UTC);
+    document.getElementById("datetime").textContent = datetime;
     
     document.getElementById("ip_address").textContent = data.ip;
     document.getElementById("version").textContent = data.version;
@@ -257,10 +271,6 @@ async function updateIndoor() {
     }
 
 async function updateOutdoor() {
-    datetime = getCurrentDateTimeUTC(data.UTC);
-    document.getElementById("datetime").textContent = datetime;
-
-    let coords = await getCoords(data.zipcode, data.country, data.ow_api_key);
     base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
     nws = await getNWS(coords);
     //aqi = await getOW(coords, data.ow_api_key);
@@ -330,21 +340,24 @@ async function waitWarn(a) {
             
             if (response.ok) {
                 console.log("Run control successful.");
-                setTimeout(updateStatus, 1000);
+                setTimeout(updateStatus, 1000, false);
             } else {
                 throw new Error('Run command failed with status: ' + response.status);
             }
         } catch (error) {
             console.error('Run Error:', error);
             document.getElementById("warnLabel").textContent = "Error during RUN.";
-            updateStatus();
+            updateStatus(false);
         }
     } else if (a === 1) {
-        updateStatus();
+        updateStatus(false);
     }
 }
-document.addEventListener('DOMContentLoaded', updateStatus);
-setInterval(updateStatus, 30000);
+//document.addEventListener('DOMContentLoaded', updateStatus);
+document.addEventListener('DOMContentLoaded', () => {
+  updateStatus(true);
+});
+setInterval(updateStatus, 30000, false);
 
 //////////////////////////////////////////////
 // Utilities
