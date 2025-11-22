@@ -187,18 +187,22 @@ async function updateStatus() {
     document.getElementById("Status").value = "Loading...";
     //document.getElementById("warnLabel").textContent = "Testing";
     
+    await updateIndoor();
+    await updateOutdoor();
+    
+    //document.getElementById("warnLabel").textContent = "Update Status: \n Ready";
+    document.getElementById("Status").value = "Update";
+    document.getElementById("warnLabel").textContent = "";
+    document.getElementById("Submit").disabled = false;
+    document.getElementById("Status").disabled = false;
+    }
+    
+async function updateIndoor() {
     data = await fetchData();
-    console.log(data);
     
-    datetime = getCurrentDateTimeUTC(data.UTC);
-    
-    let coords = await getCoords(data.zipcode, data.country, data.ow_api_key);
-    
-    base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
-    nws = await getNWS(coords);
-    //aqi = await getOW(coords, data.ow_api_key);
-    aqi = await getOM(coords);
-    
+    document.getElementById("ip_address").textContent = data.ip;
+    document.getElementById("version").textContent = data.version;
+   
     //document.getElementById("door_status").textContent = data.state;
     document.getElementById("Submit").value = "Door \n\n" + data.state;
     document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
@@ -250,6 +254,17 @@ async function updateStatus() {
         document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
         document.getElementById('remoteTVOC').style.color = getTVOCcolor(data.remoteTVOC);
         }
+    }
+
+async function updateOutdoor() {
+    datetime = getCurrentDateTimeUTC(data.UTC);
+    document.getElementById("datetime").textContent = datetime;
+
+    let coords = await getCoords(data.zipcode, data.country, data.ow_api_key);
+    base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
+    nws = await getNWS(coords);
+    //aqi = await getOW(coords, data.ow_api_key);
+    aqi = await getOM(coords);
     
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
     
@@ -296,17 +311,7 @@ async function updateStatus() {
     document.getElementById("ext_visibility").textContent = nws.visibility+" m";
     document.getElementById("ext_dewpoint").textContent = nws.dewpoint+" \u00b0C";
     document.getElementById("ext_wetbulb").textContent = nws.wetbulb+" \u00b0C";
-
-    document.getElementById("datetime").textContent = datetime;
-    document.getElementById("ip_address").textContent = data.ip;
-    document.getElementById("version").textContent = data.version;
-
-    //document.getElementById("warnLabel").textContent = "Update Status: \n Ready";
-    document.getElementById("Status").value = "Update";
-    document.getElementById("warnLabel").textContent = "";
-    document.getElementById("Submit").disabled = false;
-    document.getElementById("Status").disabled = false;
-}
+ }
 
 //////////////////////////////////////////////
 // Logic when pushing Door Status
