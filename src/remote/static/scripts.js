@@ -10,6 +10,225 @@ function getCurrentDateTimeUTC(UTC) {
     const dateObject = new Date(Math.round(UTC/1e6));
     return dateObject.toLocaleString();
     }
+    
+//////////////////////////////////////////////
+// Ger Local Data from Pico
+//////////////////////////////////////////////
+async function fetchData() {
+    try {
+        const response = await fetch('/api/status');
+        const data = await response.json();
+        return data;
+        
+    } catch (error) {
+        console.error('Error fetching status:', error);
+        document.getElementById("warnLabel").textContent = "Error: Check connection.";
+        // Re-enable buttons even on error, so user can try again
+        document.getElementById("Submit").disabled = false;
+        document.getElementById("Status").disabled = false;
+    }
+}
+async function fetchData2(dev) {
+    try {
+        const response = await fetch("/api/status2?device_id="+dev);
+        const data = await response.json();
+        return data;
+        
+    } catch (error) {
+        console.error('Error fetching status:', error);
+        document.getElementById("warnLabel").textContent = "Error: Check connection.";
+        // Re-enable buttons even on error, so user can try again
+        document.getElementById("Submit").disabled = false;
+        document.getElementById("Status").disabled = false;
+    }
+}
+//////////////////////////////////////////////
+// Logic when pushing Update Status button
+//////////////////////////////////////////////
+async function updateStatus(isStartup) {
+    //document.getElementById("Submit").value = "Door \n\n Loading...";
+    document.getElementById("Status").value = "Loading...";
+    //document.getElementById("warnLabel").textContent = "Testing";
+    
+    await updateIndoor1();
+    if (isStartup == true) {
+        console.log("Setting up Coords");
+        await getCoords();}
+    await updateIndoor2();
+    await updateOutdoor();
+    
+    //document.getElementById("warnLabel").textContent = "Update Status: \n Ready";
+    document.getElementById("Status").value = "Update";
+    document.getElementById("warnLabel").textContent = "";
+    document.getElementById("Submit").disabled = false;
+    document.getElementById("Status").disabled = false;
+    }
+ 
+// Logic to update local sensor information
+async function updateIndoor1() {
+    data = await fetchData2("loc");
+    zipcode = data.zipcode;
+    country = data.country;
+    ow_api_key = data.ow_api_key;
+    
+    datetime = getCurrentDateTimeUTC(data.UTC);
+    document.getElementById("datetime").textContent = datetime;
+    
+    document.getElementById("ip_address").textContent = data.ip;
+    document.getElementById("version").textContent = data.version;
+   
+    //document.getElementById("door_status").textContent = data.state;
+    document.getElementById("Submit").value = "Door \n\n" + data.state;
+    document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
+    document.getElementById("Status").style.backgroundColor = "navy";
+
+    document.getElementById("locTemp").textContent = data.locTemp + " \u00B0C";
+    document.getElementById("locRH").textContent = data.locRH + " %";
+    document.getElementById("locHI").textContent = data.locHI + " \u00B0C";
+    document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";
+    
+    if(data.locIAQ !== "--") {
+        document.getElementById('locIAQ').style.display = 'block';
+        document.getElementById('locIAQ_label').style.display = 'block';
+        document.getElementById('locIAQ').textContent = data.locIAQ;
+        document.getElementById('locIAQ').style.color = getIAQcolor(data.locIAQ);
+        }
+    if(data.loceCO2 !== "--") {
+        document.getElementById('loceCO2').style.display = 'block';
+        document.getElementById('loceCO2_label').style.display = 'block';
+        document.getElementById('loceCO2').textContent = data.loceCO2 + " ppm";
+        document.getElementById('loceCO2').style.color = getCO2color(data.loceCO2);
+        }
+    if(data.locTVOC !== "--") {
+        document.getElementById('locTVOC').style.display = 'block';
+        document.getElementById('locTVOC_label').style.display = 'block';
+        document.getElementById('locTVOC').textContent = data.locTVOC + " ppb";
+        document.getElementById('locTVOC').style.color = getTVOCcolor(data.locTVOC);
+        }
+    }
+
+// Logic to update remote sensor information
+async function updateIndoor2() {
+    data = await fetchData2("remote");
+   
+    //document.getElementById("door_status").textContent = data.state;
+    document.getElementById("Submit").value = "Door \n\n" + data.state;
+    document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
+    document.getElementById("Status").style.backgroundColor = "navy";
+
+    document.getElementById("remoteTemp").textContent = data.remoteTemp + " \u00B0C";
+    document.getElementById("remoteRH").textContent = data.remoteRH + " %";
+    document.getElementById("remoteHI").textContent = data.remoteHI + " \u00B0C";
+    document.getElementById("remoteWBT").textContent = getWetBulbTemp(data.remoteTemp, data.remoteRH, data.remoteSens) + " \u00B0C";
+        
+    if(data.remoteIAQ !== "--") {
+        document.getElementById('remoteIAQ').style.display = 'block';
+        document.getElementById('remoteIAQ_label').style.display = 'block';
+        document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
+        document.getElementById('remoteIAQ').style.color = getIAQcolor(data.remoteIAQ);
+        }
+    if(data.remoteeCO2 !== "--") {
+        document.getElementById('remoteeCO2').style.display = 'block';
+        document.getElementById('remoteeCO2_label').style.display = 'block';
+        document.getElementById("remoteeCO2").textContent = data.remoteeCO2 + " ppm";
+        document.getElementById('remoteeCO2').style.color = getCO2color(data.remoteeCO2);
+        }
+    if(data.remoteTVOC !== "--") {
+        document.getElementById('remoteTVOC').style.display = 'block';
+        document.getElementById('remoteTVOC_label').style.display = 'block';
+        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
+        document.getElementById('remoteTVOC').style.color = getTVOCcolor(data.remoteTVOC);
+        }
+    }
+
+async function updateOutdoor() {
+    base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
+    nws = await getNWS(coords);
+    //aqi = await getOW(coords, data.ow_api_key);
+    aqi = await getOM(coords);
+    
+    document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
+    
+    document.getElementById("ext_temperature").textContent = nws.temperature+" \u00b0C";
+    document.getElementById("ext_RH").textContent = nws.relativeHumidity+" %";
+    
+    const pollutantMap = [
+    { idSuffix: "aqi_now", aqiProp: "aqi_now", colorRanges: aqiColorRanges },
+    { idSuffix: "aqi_next", aqiProp: "aqi_next", colorRanges: aqiColorRanges },
+    { idSuffix: "uvi_now", aqiProp: "uvi_now", colorRanges: uvColorRanges },
+    { idSuffix: "uvi_next", aqiProp: "uvi_next", colorRanges: uvColorRanges },
+    { idSuffix: "co", aqiProp: "co", colorRanges: coColorRanges },
+    { idSuffix: "co2", aqiProp: "co2" }, // co2 does not appear to have a color change
+    { idSuffix: "no2", aqiProp: "no2", colorRanges: no2ColorRanges },
+    { idSuffix: "o3", aqiProp: "o3", colorRanges: o3ColorRanges },
+    { idSuffix: "so2", aqiProp: "so2", colorRanges: so2ColorRanges },
+    { idSuffix: "pm2_5", aqiProp: "pm2_5", colorRanges: pm2_5ColorRanges },
+    { idSuffix: "pm10", aqiProp: "pm10", colorRanges: pm10ColorRanges },
+    { idSuffix: "nh3", aqiProp: "nh3", colorRanges: null },
+    { idSuffix: "ch4", aqiProp: "ch4", colorRanges: null },
+    { idSuffix: "dust", aqiProp: "dust", colorRanges: null },
+    ];
+    
+    pollutantMap.forEach(pollutant => {
+    const element = document.getElementById("ext_" + pollutant.idSuffix);
+    if (element && aqi[pollutant.aqiProp] !== undefined) {
+        element.textContent = aqi[pollutant.aqiProp];
+
+        if (pollutant.colorRanges) {
+            if (typeof getColor === 'function') {
+                element.style.color = getColor(aqi[pollutant.aqiProp], pollutant.colorRanges);
+            }
+        }
+    } else if (element) {
+        element.textContent = 'N/A';
+    }
+    });
+    
+    document.getElementById("ext_pressure").textContent = nws.seaLevelPressure+" mbar";
+    document.getElementById("ext_heatindex").textContent = nws.heatIndex+" \u00b0C";
+    document.getElementById("ext_weather").textContent = nws.presentWeather;
+    document.getElementById("ext_next_weather_am").textContent = nws.futureWeatherAM;
+    document.getElementById("ext_next_weather_pm").textContent = nws.futureWeatherPM;
+    document.getElementById("ext_visibility").textContent = nws.visibility+" m";
+    document.getElementById("ext_dewpoint").textContent = nws.dewpoint+" \u00b0C";
+    document.getElementById("ext_wetbulb").textContent = nws.wetbulb+" \u00b0C";
+ }
+
+//////////////////////////////////////////////
+// Logic when pushing Door Status
+//////////////////////////////////////////////
+async function waitWarn(a) {
+    // document.getElementById("warnLabel").innerHTML = "Please wait...";
+    document.getElementById("Status").disabled = true;
+    document.getElementById("Status").style.backgroundColor = "#155084";
+
+    if (a === 0) {
+        document.getElementById("Submit").disabled = true;
+        document.getElementById("Submit").style.backgroundColor = "orange";
+        
+        try {
+            const response = await fetch('/api/run');
+            
+            if (response.ok) {
+                console.log("Run control successful.");
+                setTimeout(updateStatus, 1000, false);
+            } else {
+                throw new Error('Run command failed with status: ' + response.status);
+            }
+        } catch (error) {
+            console.error('Run Error:', error);
+            document.getElementById("warnLabel").textContent = "Error during RUN.";
+            updateStatus(false);
+        }
+    } else if (a === 1) {
+        updateStatus(false);
+    }
+}
+//document.addEventListener('DOMContentLoaded', updateStatus);
+document.addEventListener('DOMContentLoaded', () => {
+  updateStatus(true);
+});
+setInterval(updateStatus, 30000, false);
 
 ////////////////////////////////////
 // Get feed from DB - generic
@@ -165,198 +384,6 @@ async function getNWS(coords) {
     r.futureWeatherPM = getWeatherDescription(omNextData['hourly']['weather_code'][38]);
     return r;
     }
-
-//////////////////////////////////////////////
-// Ger Local Data from Pico
-//////////////////////////////////////////////
-async function fetchData() {
-    try {
-        const response = await fetch('/api/status');
-        const data = await response.json();
-        return data;
-        
-    } catch (error) {
-        console.error('Error fetching status:', error);
-        document.getElementById("warnLabel").textContent = "Error: Check connection.";
-        // Re-enable buttons even on error, so user can try again
-        document.getElementById("Submit").disabled = false;
-        document.getElementById("Status").disabled = false;
-    }
-}
-//////////////////////////////////////////////
-// Logic when pushing Update Status button
-//////////////////////////////////////////////
-async function updateStatus(isStartup) {
-    //document.getElementById("Submit").value = "Door \n\n Loading...";
-    document.getElementById("Status").value = "Loading...";
-    //document.getElementById("warnLabel").textContent = "Testing";
-    
-    await updateIndoor();
-    if (isStartup == true) {
-        console.log("Setting up Coords");
-        await getCoords();}
-    await updateOutdoor();
-    
-    //document.getElementById("warnLabel").textContent = "Update Status: \n Ready";
-    document.getElementById("Status").value = "Update";
-    document.getElementById("warnLabel").textContent = "";
-    document.getElementById("Submit").disabled = false;
-    document.getElementById("Status").disabled = false;
-    }
-    
-async function updateIndoor() {
-    data = await fetchData();
-    zipcode = data.zipcode;
-    country = data.country;
-    ow_api_key = data.ow_api_key;
-    
-    datetime = getCurrentDateTimeUTC(data.UTC);
-    document.getElementById("datetime").textContent = datetime;
-    
-    document.getElementById("ip_address").textContent = data.ip;
-    document.getElementById("version").textContent = data.version;
-   
-    //document.getElementById("door_status").textContent = data.state;
-    document.getElementById("Submit").value = "Door \n\n" + data.state;
-    document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
-    document.getElementById("Status").style.backgroundColor = "navy";
-
-    document.getElementById("locTemp").textContent = data.locTemp + " \u00B0C";
-    document.getElementById("remoteTemp").textContent = data.remoteTemp + " \u00B0C";
-    document.getElementById("locRH").textContent = data.locRH + " %";
-    document.getElementById("remoteRH").textContent = data.remoteRH + " %";
-    document.getElementById("locHI").textContent = data.locHI + " \u00B0C";
-    document.getElementById("remoteHI").textContent = data.remoteHI + " \u00B0C";
-    document.getElementById("locWBT").textContent = getWetBulbTemp(data.locTemp, data.locRH, data.locSens) + " \u00B0C";
-    document.getElementById("remoteWBT").textContent = getWetBulbTemp(data.remoteTemp, data.remoteRH, data.remoteSens) + " \u00B0C";
-    
-    if(data.locIAQ !== "--") {
-        document.getElementById('locIAQ').style.display = 'block';
-        document.getElementById('locIAQ_label').style.display = 'block';
-        document.getElementById('locIAQ').textContent = data.locIAQ;
-        document.getElementById('locIAQ').style.color = getIAQcolor(data.locIAQ);
-        }
-    if(data.loceCO2 !== "--") {
-        document.getElementById('loceCO2').style.display = 'block';
-        document.getElementById('loceCO2_label').style.display = 'block';
-        document.getElementById('loceCO2').textContent = data.loceCO2 + " ppm";
-        document.getElementById('loceCO2').style.color = getCO2color(data.loceCO2);
-        }
-    if(data.locTVOC !== "--") {
-        document.getElementById('locTVOC').style.display = 'block';
-        document.getElementById('locTVOC_label').style.display = 'block';
-        document.getElementById('locTVOC').textContent = data.locTVOC + " ppb";
-        document.getElementById('locTVOC').style.color = getTVOCcolor(data.locTVOC);
-        }
-        
-    if(data.remoteIAQ !== "--") {
-        document.getElementById('remoteIAQ').style.display = 'block';
-        document.getElementById('remoteIAQ_label').style.display = 'block';
-        document.getElementById('remoteIAQ').textContent = data.remoteIAQ;
-        document.getElementById('remoteIAQ').style.color = getIAQcolor(data.remoteIAQ);
-        }
-    if(data.remoteeCO2 !== "--") {
-        document.getElementById('remoteeCO2').style.display = 'block';
-        document.getElementById('remoteeCO2_label').style.display = 'block';
-        document.getElementById("remoteeCO2").textContent = data.remoteeCO2 + " ppm";
-        document.getElementById('remoteeCO2').style.color = getCO2color(data.remoteeCO2);
-        }
-    if(data.remoteTVOC !== "--") {
-        document.getElementById('remoteTVOC').style.display = 'block';
-        document.getElementById('remoteTVOC_label').style.display = 'block';
-        document.getElementById('remoteTVOC').textContent = data.remoteTVOC + " ppb";
-        document.getElementById('remoteTVOC').style.color = getTVOCcolor(data.remoteTVOC);
-        }
-    }
-
-async function updateOutdoor() {
-    base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
-    nws = await getNWS(coords);
-    //aqi = await getOW(coords, data.ow_api_key);
-    aqi = await getOM(coords);
-    
-    document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
-    
-    document.getElementById("ext_temperature").textContent = nws.temperature+" \u00b0C";
-    document.getElementById("ext_RH").textContent = nws.relativeHumidity+" %";
-    
-    const pollutantMap = [
-    { idSuffix: "aqi_now", aqiProp: "aqi_now", colorRanges: aqiColorRanges },
-    { idSuffix: "aqi_next", aqiProp: "aqi_next", colorRanges: aqiColorRanges },
-    { idSuffix: "uvi_now", aqiProp: "uvi_now", colorRanges: uvColorRanges },
-    { idSuffix: "uvi_next", aqiProp: "uvi_next", colorRanges: uvColorRanges },
-    { idSuffix: "co", aqiProp: "co", colorRanges: coColorRanges },
-    { idSuffix: "co2", aqiProp: "co2" }, // co2 does not appear to have a color change
-    { idSuffix: "no2", aqiProp: "no2", colorRanges: no2ColorRanges },
-    { idSuffix: "o3", aqiProp: "o3", colorRanges: o3ColorRanges },
-    { idSuffix: "so2", aqiProp: "so2", colorRanges: so2ColorRanges },
-    { idSuffix: "pm2_5", aqiProp: "pm2_5", colorRanges: pm2_5ColorRanges },
-    { idSuffix: "pm10", aqiProp: "pm10", colorRanges: pm10ColorRanges },
-    { idSuffix: "nh3", aqiProp: "nh3", colorRanges: null },
-    { idSuffix: "ch4", aqiProp: "ch4", colorRanges: null },
-    { idSuffix: "dust", aqiProp: "dust", colorRanges: null },
-    ];
-    
-    pollutantMap.forEach(pollutant => {
-    const element = document.getElementById("ext_" + pollutant.idSuffix);
-    if (element && aqi[pollutant.aqiProp] !== undefined) {
-        element.textContent = aqi[pollutant.aqiProp];
-
-        if (pollutant.colorRanges) {
-            if (typeof getColor === 'function') {
-                element.style.color = getColor(aqi[pollutant.aqiProp], pollutant.colorRanges);
-            }
-        }
-    } else if (element) {
-        element.textContent = 'N/A';
-    }
-    });
-    
-    document.getElementById("ext_pressure").textContent = nws.seaLevelPressure+" mbar";
-    document.getElementById("ext_heatindex").textContent = nws.heatIndex+" \u00b0C";
-    document.getElementById("ext_weather").textContent = nws.presentWeather;
-    document.getElementById("ext_next_weather_am").textContent = nws.futureWeatherAM;
-    document.getElementById("ext_next_weather_pm").textContent = nws.futureWeatherPM;
-    document.getElementById("ext_visibility").textContent = nws.visibility+" m";
-    document.getElementById("ext_dewpoint").textContent = nws.dewpoint+" \u00b0C";
-    document.getElementById("ext_wetbulb").textContent = nws.wetbulb+" \u00b0C";
- }
-
-//////////////////////////////////////////////
-// Logic when pushing Door Status
-//////////////////////////////////////////////
-async function waitWarn(a) {
-    // document.getElementById("warnLabel").innerHTML = "Please wait...";
-    document.getElementById("Status").disabled = true;
-    document.getElementById("Status").style.backgroundColor = "#155084";
-
-    if (a === 0) {
-        document.getElementById("Submit").disabled = true;
-        document.getElementById("Submit").style.backgroundColor = "orange";
-        
-        try {
-            const response = await fetch('/api/run');
-            
-            if (response.ok) {
-                console.log("Run control successful.");
-                setTimeout(updateStatus, 1000, false);
-            } else {
-                throw new Error('Run command failed with status: ' + response.status);
-            }
-        } catch (error) {
-            console.error('Run Error:', error);
-            document.getElementById("warnLabel").textContent = "Error during RUN.";
-            updateStatus(false);
-        }
-    } else if (a === 1) {
-        updateStatus(false);
-    }
-}
-//document.addEventListener('DOMContentLoaded', updateStatus);
-document.addEventListener('DOMContentLoaded', () => {
-  updateStatus(true);
-});
-setInterval(updateStatus, 30000, false);
 
 //////////////////////////////////////////////
 // Utilities

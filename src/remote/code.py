@@ -1,6 +1,6 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.22.1
+# * v2025.11.24.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
@@ -217,6 +217,63 @@ class GarageServer:
             # Return the response using the compatible Response constructor
             return Response(request, json_content, headers=headers)
 
+        @self.server.route("/api/status2")
+        def api_status2(request):
+            #device_id = request.args.get("device_id")
+            device_id = request.query_params.get("device_id") 
+            
+            if device_id == "loc":
+                data = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
+                remote_sensor_url = "local"
+            else:
+                data = self.getStatusRemoteSonar()
+                remote_sensor_url = self.remote_sensor_url
+
+            UTC = self.getUTC()
+
+            data_dict = {
+                #"locTemp": data['temperature'],
+                #"locRH": data['RH'],
+                #"locHI": data['HI'],
+                #"locIAQ": data['IAQ'],
+                #"locTVOC": data['TVOC'],
+                #"loceCO2": data['eCO2'],
+                #"locSens": data['type'],
+                #"remoteTemp": remoteData['temperature'],
+                #"remoteRH": remoteData['RH'],
+                #"remoteHI": remoteData['HI'],
+                #"remoteIAQ": remoteData['IAQ'],
+                #"remoteTVOC": remoteData['TVOC'],
+                #"remoteeCO2": remoteData['eCO2'],
+                #"remoteSens": remoteData['type'],
+                "remote_sensor_url" : remote_sensor_url,
+                "libSensors_version": self.sensors.sensDev.version,
+                "ip": self.ip,
+                "ow_api_key": self.ow_api_key,
+                "station": self.station,
+                "zipcode": self.zipcode,
+                "country": self.country,
+                "version": version,
+                "UTC": UTC,
+            }
+            
+            data_dict[f"{device_id}Temp"] = data['temperature']
+            data_dict[f"{device_id}RH"] = data['RH']
+            data_dict[f"{device_id}HI"] = data['HI']
+            data_dict[f"{device_id}IAQ"] = data['IAQ']
+            data_dict[f"{device_id}TVOC"] = data['TVOC']
+            data_dict[f"{device_id}eCO2"] = data['eCO2']
+            data_dict[f"{device_id}type"] = data['type']
+                
+            json_content = json.dumps(data_dict)
+
+            print(json_content)
+
+            headers = {"Content-Type": "application/json"}
+
+            # Return the response using the compatible Response constructor
+            return Response(request, json_content, headers=headers)
+
         @self.server.route("/scripts.js")
         def icon_route(request):
             return self._serve_static_file(request, 'static/scripts.js')
@@ -274,15 +331,15 @@ class GarageServer:
                 print("WiFi connection lost. Rebooting...")
                 self.reboot()
 
-            try:
-                self.server.poll()
-            except (BrokenPipeError, OSError) as e:
-                if isinstance(e, OSError) and e.args[0] not in (32, 104):
-                    print(f"Unexpected OSError in server poll: {e}")
-                elif isinstance(e, BrokenPipeError):
-                    pass
-            except Exception as e:
-                print(f"Unexpected critical error in server poll: {e}")
+            #try:
+            self.server.poll()
+            #except (BrokenPipeError, OSError) as e:
+            #    if isinstance(e, OSError) and e.args[0] not in (32, 104):
+            #        print(f"Unexpected OSError in server poll: {e}")
+            #    elif isinstance(e, BrokenPipeError):
+            #        pass
+            #except Exception as e:
+            #    print(f"Unexpected critical error in server poll: {e}")
 
             time.sleep(0.01)
 
