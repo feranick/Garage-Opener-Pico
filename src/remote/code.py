@@ -182,13 +182,16 @@ class GarageServer:
             if device_id == "loc":
                 data = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
                 remote_sensor_url = "local"
+                state = "N/A"
             else:
                 data = self.getStatusRemoteSonar()
                 remote_sensor_url = self.remote_sensor_url
+                state = data['state']
 
             UTC = self.getUTC()
 
             data_dict = {
+                "state" : state,
                 "remote_sensor_url" : remote_sensor_url,
                 "libSensors_version": self.sensors.sensDev.version,
                 "ip": self.ip,
