@@ -4,7 +4,7 @@
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.22.1"
+version = "2025.11.24.1"
 
 import wifi
 import time
@@ -175,53 +175,10 @@ class GarageServer:
         #   return Response(request, "OK")
 
         @self.server.route("/api/status")
-        def api_status(request):
-            #state = self.sensors.checkStatusSonar()
-            remoteData = self.getStatusRemoteSonar()
-            localData = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
-
-            UTC = self.getUTC()
-
-            data_dict = {
-                "state": remoteData['state'],
-                "locTemp": localData['temperature'],
-                "locRH": localData['RH'],
-                "locHI": localData['HI'],
-                "locIAQ": localData['IAQ'],
-                "locTVOC": localData['TVOC'],
-                "loceCO2": localData['eCO2'],
-                "locSens": localData['type'],
-                "remoteTemp": remoteData['temperature'],
-                "remoteRH": remoteData['RH'],
-                "remoteHI": remoteData['HI'],
-                "remoteIAQ": remoteData['IAQ'],
-                "remoteTVOC": remoteData['TVOC'],
-                "remoteeCO2": remoteData['eCO2'],
-                "remoteSens": remoteData['type'],
-                "remote_sensor_url" : self.remote_sensor_url,
-                "libSensors_version": self.sensors.sensDev.version,
-                "ip": self.ip,
-                "ow_api_key": self.ow_api_key,
-                "station": self.station,
-                "zipcode": self.zipcode,
-                "country": self.country,
-                "version": version,
-                "UTC": UTC,
-            }
-            json_content = json.dumps(data_dict)
-
-            print(json_content)
-
-            headers = {"Content-Type": "application/json"}
-
-            # Return the response using the compatible Response constructor
-            return Response(request, json_content, headers=headers)
-
-        @self.server.route("/api/status2")
         def api_status2(request):
             #device_id = request.args.get("device_id")
-            device_id = request.query_params.get("device_id") 
-            
+            device_id = request.query_params.get("device_id")
+
             if device_id == "loc":
                 data = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
                 remote_sensor_url = "local"
@@ -232,20 +189,6 @@ class GarageServer:
             UTC = self.getUTC()
 
             data_dict = {
-                #"locTemp": data['temperature'],
-                #"locRH": data['RH'],
-                #"locHI": data['HI'],
-                #"locIAQ": data['IAQ'],
-                #"locTVOC": data['TVOC'],
-                #"loceCO2": data['eCO2'],
-                #"locSens": data['type'],
-                #"remoteTemp": remoteData['temperature'],
-                #"remoteRH": remoteData['RH'],
-                #"remoteHI": remoteData['HI'],
-                #"remoteIAQ": remoteData['IAQ'],
-                #"remoteTVOC": remoteData['TVOC'],
-                #"remoteeCO2": remoteData['eCO2'],
-                #"remoteSens": remoteData['type'],
                 "remote_sensor_url" : remote_sensor_url,
                 "libSensors_version": self.sensors.sensDev.version,
                 "ip": self.ip,
@@ -256,15 +199,15 @@ class GarageServer:
                 "version": version,
                 "UTC": UTC,
             }
-            
+
             data_dict[f"{device_id}Temp"] = data['temperature']
             data_dict[f"{device_id}RH"] = data['RH']
             data_dict[f"{device_id}HI"] = data['HI']
             data_dict[f"{device_id}IAQ"] = data['IAQ']
             data_dict[f"{device_id}TVOC"] = data['TVOC']
             data_dict[f"{device_id}eCO2"] = data['eCO2']
-            data_dict[f"{device_id}type"] = data['type']
-                
+            data_dict[f"{device_id}Sens"] = data['type']
+
             json_content = json.dumps(data_dict)
 
             print(json_content)
@@ -331,15 +274,15 @@ class GarageServer:
                 print("WiFi connection lost. Rebooting...")
                 self.reboot()
 
-            #try:
-            self.server.poll()
-            #except (BrokenPipeError, OSError) as e:
-            #    if isinstance(e, OSError) and e.args[0] not in (32, 104):
-            #        print(f"Unexpected OSError in server poll: {e}")
-            #    elif isinstance(e, BrokenPipeError):
-            #        pass
-            #except Exception as e:
-            #    print(f"Unexpected critical error in server poll: {e}")
+            try:
+                self.server.poll()
+            except (BrokenPipeError, OSError) as e:
+                if isinstance(e, OSError) and e.args[0] not in (32, 104):
+                    print(f"Unexpected OSError in server poll: {e}")
+                elif isinstance(e, BrokenPipeError):
+                    pass
+            except Exception as e:
+                print(f"Unexpected critical error in server poll: {e}")
 
             time.sleep(0.01)
 
@@ -352,13 +295,13 @@ class GarageServer:
         except Exception as e:
             print(f"Sonar not available: {e}")
             return {'state': 'N/A',
-                    'temperature': '--', 
+                    'temperature': '--',
                     'pressure': '--',
-                    'RH': '--',  
-                    'HI': '--', 
+                    'RH': '--',
+                    'HI': '--',
                     'IAQ': '--',
                     'TVOC': '--',
-                    'eCO2': '--', 
+                    'eCO2': '--',
                     'type': '--'}
 
     def setup_ntp(self):
@@ -399,7 +342,7 @@ class Control:
 class Sensors:
     def __init__(self, conf):
         self.sensDev = SensorDevices()
-        
+
         '''
         # Enable for the use of Sonar in main device
         self.sonar = None
@@ -410,12 +353,12 @@ class Sensors:
 
         self.trigger_distance = conf.trigger_distance
         '''
-        
+
         self.envSensor1 = None
         self.envSensor1_name = conf.sensor1_name
         self.envSensor1_pins = conf.sensor1_pins
         self.sensor1_correct_temp = conf.sensor1_correct_temp
-        
+
         self.envSensor1 = self.sensDev.initSensor(conf.sensor1_name, conf.sensor1_pins)
 
         if self.envSensor1 != None:
@@ -428,24 +371,24 @@ class Sensors:
             self.avDeltaT = 0
 
         self.numTimes = 1
-        
+
     def getEnvData(self, envSensor, envSensor_name, correct_temp):
         t_cpu = microcontroller.cpu.temperature
         if not envSensor:
             print(f"{envSensor_name} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
-                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}", 
-                    'RH': '--', 
-                    'pressure': '--', 
+                return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
+                    'RH': '--',
+                    'pressure': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
                     'HI': '--',
                     'type': 'CPU adj.'}
             else:
-                return {'temperature': f"{round(t_cpu, 1)}", 
-                    'RH': '--', 
-                    'pressure': '--', 
+                return {'temperature': f"{round(t_cpu, 1)}",
+                    'RH': '--',
+                    'pressure': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
@@ -464,9 +407,9 @@ class Sensors:
         except:
             print(f"{envSensor_name} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
-            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}", 
-                    'RH': '--', 
-                    'pressure': '--',  
+            return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
+                    'RH': '--',
+                    'pressure': '--',
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
@@ -511,7 +454,7 @@ def stringToArray(string):
     else:
         print("Warning: Initial string-array not found in settings.toml")
         return []
-        
+
 ############################
 # Main
 ############################
