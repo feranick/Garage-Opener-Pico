@@ -33,23 +33,24 @@ async function fetchData(dev) {
 // Logic when pushing Update Status button
 //////////////////////////////////////////////
 async function updateStatus(isStartup) {
-    //document.getElementById("Submit").value = "Door \n\n Loading...";
     document.getElementById("Status").value = "Loading...";
-    //document.getElementById("warnLabel").textContent = "Testing";
-    
+
     await updateIndoor("loc");
     if (isStartup == true) {
         console.log("Setting up Coords");
         await getCoords();}
-    await updateIndoor("remote");
-    await updateOutdoor();
-    
-    //document.getElementById("warnLabel").textContent = "Update Status: \n Ready";
+
+    const backgroundTasks = [
+        updateIndoor("remote"),
+        updateOutdoor()
+    ];
+    await Promise.all(backgroundTasks);
+
     document.getElementById("Status").value = "Update";
     document.getElementById("warnLabel").textContent = "";
     document.getElementById("Submit").disabled = false;
     document.getElementById("Status").disabled = false;
-    }
+}
 
 // Logic for updating Indoor values
 // use dev = "loc" or "remote" to select between sensors
