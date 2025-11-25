@@ -2,11 +2,11 @@
 # **********************************************
 # * PicoGarageOpener - settings.toml Editor
 # * Pico driven
-# * v2025.11.18.1
+# * v2025.11.25.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.18.1"
+version = "2025.11.25.1"
 
 import tkinter as tk
 from tkinter import messagebox, filedialog
@@ -48,7 +48,7 @@ DEFAULT_SETTINGS = {
         'sensor1_name': 'AHT21',
         'sensor1_pins': '15,14',
         'sensor1_correct_temp': False,
-        'remote_sensor_url': '0.0.0.0'
+        'remote_sensor_ip': '0.0.0.0'
     },
     'database': {
         'station': 'kbos',
@@ -82,7 +82,7 @@ class ConfigApp(tk.Tk):
         
         # 2. Override common technical acronyms/terms for professional capitalization
         label = label.replace('Api', 'API')
-        label = label.replace('Url', 'URL')
+        label = label.replace('ip', 'IP')
         label = label.replace('Ssid', 'SSID')
         
         # 3. Add question marks to boolean labels for better clarity
@@ -220,18 +220,18 @@ class ConfigApp(tk.Tk):
         path_footer.grid_columnconfigure(0, weight=1)
         path_footer.grid_columnconfigure(1, weight=1)
         
-        footer_label_left = tk.Label(path_footer, text="Pins format for SPI:\n"+ \
-                                             "SCK, MOSI, MISO, OUT\n" + \
-                                             "CLK, SDI, SDO, CS\n" + \
-                                             "CLK, SDA, SDO, CS\n",
+        footer_label_left = tk.Label(path_footer, text="Pins format for I2C\n"+ \
+                                            "SCL, SDA.\n\nSeparate multiple remote sensor IPs with comma",
                                              fg="gray60",
                                              font=('Helvetica', 12, 'italic'),
                                              justify='left')
         footer_label_left.grid(row=0, column=0, sticky="w", padx=10, pady=(0, 5))
 
         # --- Add a second label to the right column ---
-        footer_label_right = tk.Label(path_footer, text="Pins format for I2C\n"+ \
-                                            "SCL, SDA.",
+        footer_label_right = tk.Label(path_footer, text="Pins format for SPI:\n"+ \
+                                             "SCK, MOSI, MISO, OUT\n" + \
+                                             "CLK, SDI, SDO, CS\n" + \
+                                             "CLK, SDA, SDO, CS\n",
                                              fg="gray60",
                                              font=('Helvetica', 12, 'italic'),
                                              justify='left')
