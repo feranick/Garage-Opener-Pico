@@ -175,7 +175,7 @@ class GarageServer:
         #   return Response(request, "OK")
 
         @self.server.route("/api/status")
-        def api_status2(request):
+        def api_status(request):
             #device_id = request.args.get("device_id")
             device_id = request.query_params.get("device_id")
 
