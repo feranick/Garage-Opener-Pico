@@ -35,15 +35,19 @@ async function fetchData(dev) {
 async function updateStatus(isStartup) {
     document.getElementById("Status").value = "Loading...";
 
-    await updateIndoor("loc");
+    const backgroundTasks = [];
     if (isStartup == true) {
+        await updateIndoor("loc");
         console.log("Setting up Coords");
-        await getCoords();}
-
-    const backgroundTasks = [
-        updateIndoor("remote"),
-        updateOutdoor()
-    ];
+        await getCoords();
+        }
+    else {
+        backgroundTasks.push(updateIndoor("loc"));
+        }
+    
+    backgroundTasks.push(updateIndoor("remote"));
+    backgroundTasks.push(updateOutdoor());
+    
     await Promise.all(backgroundTasks);
 
     document.getElementById("Status").value = "Update";
@@ -59,7 +63,7 @@ async function updateIndoor(dev) {
     zipcode = data.zipcode;
     country = data.country;
     ow_api_key = data.ow_api_key;
-    
+        
     datetime = getCurrentDateTimeUTC(data.UTC);
     document.getElementById("datetime").textContent = datetime;
     
