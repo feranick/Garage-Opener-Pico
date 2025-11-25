@@ -77,10 +77,23 @@ fieldset {
     background-color: #f0f0f0;
     padding: 5px;
     border: 0px;
+    max-width: 390px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     }
 #buttons-two-cols {
     gap: 20px;
     }
+#third-sens-two-cols {
+    background-color: #C0C0C0;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    }
+
 #outdoor-fieldset {
     background-color: #f0f0f0;
     padding: 0px;
@@ -116,7 +129,7 @@ fieldset {
 <fieldset>
     <div class="two-column-layout">
         <div class="column">
-            <strong>Indoor</strong>
+            <strong>Kitchen</strong>
             <br>T:
             <br>RH:
             <br>HI:
@@ -136,24 +149,24 @@ fieldset {
             <span id="loceCO2">...</span>
         </div>
         <div class="column">
-            <strong>Garage</strong>
+            <strong>Attic</strong>
             <br>T:
             <br>RH:
             <br>HI:
             <br>WB T:
-            <label id="remoteIAQ_label">IAQ: </label>
-            <label id="remoteTVOC_label">TVOC: </label>
-            <label id="remoteeCO2_label">eCO2: </label>
+            <label id="remote0IAQ_label">IAQ: </label>
+            <label id="remote0TVOC_label">TVOC: </label>
+            <label id="remote0eCO2_label">eCO2: </label>
         </div>
         <div class="column">
             <br>
-            <span id="remoteTemp">...</span>
-            <span id="remoteRH">...</span>
-            <span id="remoteHI">...</span>
-            <span id="remoteWBT">...</span>
-            <span id="remoteIAQ">...</span>
-            <span id="remoteTVOC">...</span>
-            <span id="remoteeCO2">...</span>
+            <span id="remote0Temp">...</span>
+            <span id="remote0RH">...</span>
+            <span id="remote0HI">...</span>
+            <span id="remote0WBT">...</span>
+            <span id="remote0IAQ">...</span>
+            <span id="remote0TVOC">...</span>
+            <span id="remote0eCO2">...</span>
         </div>
     </div>
 </fieldset>
@@ -163,15 +176,36 @@ fieldset {
         <form name="statusForm">
             <input type="button" id="Status" value="Update Status" onclick="waitWarn(1)" />
         </form>
-    </div>
-    <div class="column">
-        <form name="submitForm">
+        <br><form name="submitForm">
             <input type="button" id="Submit" value="Loading..." onclick="waitWarn(0)" />
         </form>
     </div>
+    <div class="two-column-layout" id="third-sens-two-cols">
+    <div class="column">
+            <strong>Garage</strong>
+            <br>T:
+            <br>RH:
+            <br>HI:
+            <br>WB T:
+            <label id="remote1IAQ_label">IAQ: </label>
+            <label id="remote1TVOC_label">TVOC: </label>
+            <label id="remote1eCO2_label">eCO2: </label>
+        </div>
+        <div class="column">
+            <br>
+            <span id="remote1Temp">...</span>
+            <span id="remote1RH">...</span>
+            <span id="remote1HI">...</span>
+            <span id="remote1WBT">...</span>
+            <span id="remote1IAQ">...</span>
+            <span id="remote1TVOC">...</span>
+            <span id="remote1eCO2">...</span>
+        </div>
+    </div>
+    </div>
 </div>
-<label id="warnLabel"></label>
 </fieldset>
+<label id="warnLabel"></label>
 
 <fieldset id="outdoor-fieldset">
 <div class="two-column-layout" id="outdoor-two-cols">

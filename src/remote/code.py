@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.25.1
+# * v2025.11.25.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.25.1"
+version = "2025.11.25.2"
 
 import wifi
 import time
@@ -80,14 +80,15 @@ class Conf:
 class GarageServer:
     def __init__(self, control, sensors):
         try:
-            self.remote_sensor_url = os.getenv("remote_sensor_url")
+            self.remote_sensor_ip = os.getenv("remote_sensor_ip").split(',')
             self.station = os.getenv("station")
             self.zipcode = os.getenv("zipcode")
             self.country = os.getenv("country")
             self.ow_api_key = os.getenv("ow_api_key")
+            print(f"\nRemote sensors IP: {self.remote_sensor_ip}\n")
         except KeyError: # If a key is not in os.environ (e.g. missing in settings.toml)
             print("A required setting was not found in settings.toml, using defaults.")
-            self.remote_sensor_url = "192.168.1.206"
+            self.remote_sensor_ip = ["192.168.1.206","192.168.1.208"]
             self.station = "kbos"
             self.zipcode = "02139"
             self.country = "US"
@@ -181,18 +182,25 @@ class GarageServer:
 
             if device_id == "loc":
                 data = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
-                remote_sensor_url = "local"
+                remote_sensor_ip = "local"
                 state = "N/A"
             else:
-                data = self.getStatusRemoteSonar()
-                remote_sensor_url = self.remote_sensor_url
+                if device_id[:-1] == "remote":
+                    dev_type = device_id[:-1]
+                    dev_num = int(device_id[-1])
+                else:
+                    print("\n\nTEST\n")
+                    dev_type = "remote"
+                    dev_num = 0
+                data = self.getStatusRemoteSonar(dev_num)
+                remote_sensor_ip = self.remote_sensor_ip[dev_num]
                 state = data['state']
 
             UTC = self.getUTC()
 
             data_dict = {
                 "state" : state,
-                "remote_sensor_url" : remote_sensor_url,
+                "remote_sensor_ip" : remote_sensor_ip,
                 "libSensors_version": self.sensors.sensDev.version,
                 "ip": self.ip,
                 "ow_api_key": self.ow_api_key,
@@ -213,7 +221,7 @@ class GarageServer:
 
             json_content = json.dumps(data_dict)
 
-            print(json_content)
+            print(f"\n{json_content}")
 
             headers = {"Content-Type": "application/json"}
 
@@ -283,15 +291,15 @@ class GarageServer:
                 if isinstance(e, OSError) and e.args[0] not in (32, 104):
                     print(f"Unexpected OSError in server poll: {e}")
                 elif isinstance(e, BrokenPipeError):
-                    pass
+                   pass
             except Exception as e:
                 print(f"Unexpected critical error in server poll: {e}")
 
             time.sleep(0.01)
 
-    def getStatusRemoteSonar(self):
+    def getStatusRemoteSonar(self, dev):
         try:
-            r = self.requests.get("http://"+self.remote_sensor_url+"/api/status", timeout=3.0)
+            r = self.requests.get("http://"+self.remote_sensor_ip[dev]+"/api/status", timeout=3.0)
             data = r.json()
             r.close()
             return data

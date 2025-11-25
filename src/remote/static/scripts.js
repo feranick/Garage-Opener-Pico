@@ -45,7 +45,8 @@ async function updateStatus(isStartup) {
         backgroundTasks.push(updateIndoor("loc"));
         }
     
-    backgroundTasks.push(updateIndoor("remote"));
+    backgroundTasks.push(updateIndoor("remote0"));
+    backgroundTasks.push(updateIndoor("remote1"));
     backgroundTasks.push(updateOutdoor());
     
     await Promise.all(backgroundTasks);
