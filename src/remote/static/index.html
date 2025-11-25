@@ -51,6 +51,7 @@ fieldset {
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 10px;
+    align-items: center
     }
     .two-column-layout {
     display: flex;
@@ -78,8 +79,36 @@ fieldset {
     border: 0px;
     }
 #buttons-two-cols {
-    gap: 20px; text-align: center;
+    gap: 20px;
     }
+#outdoor-fieldset {
+    background-color: #f0f0f0;
+    padding: 0px;
+    border: 0px;
+    margin: 0px auto;
+    max-width: 390px;
+    }
+#outdoor-two-cols {
+    gap: 10px;
+    width: 100%;
+    }
+#outdoor-col1 {
+    margin: 0px auto;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #C0C0C0;
+    }
+#outdoor-col2 {
+    display: flex;
+    margin: 0px auto;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #C0C0C0;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    }
+    
 
 </style>
 <script type="text/javascript" src="scripts.js" ></script>
@@ -144,42 +173,52 @@ fieldset {
 <label id="warnLabel"></label>
 </fieldset>
 
-<fieldset>
-Temperature: <span id="ext_temperature">...</span>
-<br>Real Feeling: <span id="ext_heatindex">...</span>
-<br>Relative Humidity: <span id="ext_RH">...</span>
-<br>Wet Bulb Temp.: <span id="ext_wetbulb">...</span>
-<br>Air Quality Index:<span id="ext_aqi_now">...</span>(24h:<span id="ext_aqi_next">...</span>)
-<br>UV Index:<span id="ext_uvi_now">...</span>(24h:<span id="ext_uvi_next">...</span>)
-<br>Pressure: <span id="ext_pressure">...</span>
-<small>
-<br>Today: <span id="ext_weather">...</span>
-<br>Tomorrow AM: <span id="ext_next_weather_am">...</span>
-<br>Tomorrow PM: <span id="ext_next_weather_pm">...</span>
-<br>
-<br>Visibility: <span id="ext_visibility">...</span>
-<br>Dew Point: <span id="ext_dewpoint">...</span>
-</small>
-<small><br><span id="station"></span>
-<br><span id="datetime">Time N/A</span></small>
+<fieldset id="outdoor-fieldset">
+<div class="two-column-layout" id="outdoor-two-cols">
+    <div class="column" id="outdoor-col1">
+        Outdoor
+        <br><br>T: <span id="ext_temperature">...</span>
+        <br>HI: <span id="ext_heatindex">...</span>
+        <br>RH: <span id="ext_RH">...</span>
+        <br>WBT: <span id="ext_wetbulb">...</span>
+        <br><br>AQI: <span id="ext_aqi_now">...</span>
+        <br>AQI 24h: <span id="ext_aqi_next">...</span>
+        <br><br>UVI: <span id="ext_uvi_now">...</span>
+        <br>UVI 24h: <span id="ext_uvi_next">...</span>
+        <br><br>P: <span id="ext_pressure">...</span>
+    </div>
+    <div class="column" id="outdoor-col2">
+        <small>
+        Today: <br><span id="ext_weather">...</span>
+        <br><br>Tomorrow AM: <br><span id="ext_next_weather_am">...</span>
+        <br><br>Tomorrow PM: <br><span id="ext_next_weather_pm">...</span>
+        <br><br><br>Visibility: <br><span id="ext_visibility">...</span>
+        <br><br>Dew Point: <br><span id="ext_dewpoint">...</span>
+        </small>
+    </div>
+</div>
 </fieldset>
 <fieldset>
-<div class="two-column-layout">
-<div class="column">
-CO: <span id="ext_co">...</span>
-<br>NO2: <span id="ext_no2">...</span>
-<br>O3: <span id="ext_o3">...</span>
-<br>CO2: <span id="ext_co2">...</span>
-<br>CH4: <span id="ext_ch4">...</span>
-</div>
-<div class="column">
-PM2.5: <span id="ext_pm2_5">...</span>
-<br>PM10: <span id="ext_pm10">...</span>
-<br>SO2: <span id="ext_so2">...</span>
-<br>NH3: <span id="ext_nh3">...</span>
-<br>Dust: <span id="ext_dust">...</span>
-</div>
-</div>
+    <small><br><span id="station"></span>
+    <br><span id="datetime">Time N/A</span></small>
+</fieldset>
+<fieldset>
+    <div class="two-column-layout">
+        <div class="column">
+        CO: <span id="ext_co">...</span>
+        <br>NO2: <span id="ext_no2">...</span>
+        <br>O3: <span id="ext_o3">...</span>
+        <br>CO2: <span id="ext_co2">...</span>
+        <br>CH4: <span id="ext_ch4">...</span>
+        </div>
+    <div class="column">
+        PM2.5: <span id="ext_pm2_5">...</span>
+        <br>PM10: <span id="ext_pm10">...</span>
+<       br>SO2: <span id="ext_so2">...</span>
+        <br>NH3: <span id="ext_nh3">...</span>
+        <br>Dust: <span id="ext_dust">...</span>
+        </div>
+    </div>
 </fieldset>
 
 <small><small>Device IP: <span id="ip_address">N/A</span></small></small>

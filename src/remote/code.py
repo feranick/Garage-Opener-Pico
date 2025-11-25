@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.24.2
+# * v2025.11.25.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.24.2"
+version = "2025.11.25.1"
 
 import wifi
 import time
