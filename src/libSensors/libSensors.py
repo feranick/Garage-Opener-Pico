@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.26.1
+# * v2025.11.26.2
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.26.1"
+libSensors_version = "2025.11.26.2"
 
 import time
 import os
@@ -442,15 +442,15 @@ def overclock(flag):
     if flag == "True":
         if os.uname().sysname == "rp2350a":
             microcontroller.cpu.frequency = 200_000_000
-        elif os.uname().sysname == "rp2040a":
-            microcontroller.cpu.frequency = 150_000_000
+        elif os.uname().sysname == "rp2040":
+            microcontroller.cpu.frequency = 166_000_000
         else:
             pass
         print(f"\nCPU frequency overclocked to: {microcontroller.cpu.frequency / 1_000_000} MHz\n")
     else:
         if os.uname().sysname == "rp2350a":
             microcontroller.cpu.frequency = 150_000_000
-        elif os.uname().sysname == "rp2040a":
+        elif os.uname().sysname == "rp2040":
             microcontroller.cpu.frequency = 133_000_000
         else:
             pass
