@@ -3,6 +3,7 @@ CIRCUITPY_WIFI_PASSWORD = "password"
 CIRCUITPY_WEB_INSTANCE_NAME = "GarageOpener"
 CIRCUITPY_WEB_API_PASSWORD = "passw0rd"
 CIRCUITPY_WEB_API_PORT = 205
+overclock = "True"
 trigger_distance = "20"
 sensor1_name = "AHT21"
 sensor1_pins = "17,16"

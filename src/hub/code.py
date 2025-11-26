@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.25.2
+# * v2025.11.25.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.25.2"
+version = "2025.11.25.3"
 
 import wifi
 import time
@@ -59,6 +59,11 @@ if supervisor.runtime.safe_mode_reason is not None:
 class Conf:
     def __init__(self):
         try:
+            overclock(os.getenv("overclock"))
+        except:
+            overclock("False")
+        
+        try:
             self.trigger_distance = float(os.getenv("trigger_distance"))
         except ValueError:
             self.trigger_distance = 20.0
@@ -85,7 +90,7 @@ class GarageServer:
             self.zipcode = os.getenv("zipcode")
             self.country = os.getenv("country")
             self.ow_api_key = os.getenv("ow_api_key")
-            print(f"\nRemote sensors IP: {self.remote_sensor_ip}\n")
+            print(f"\nRemote sensors IP: {self.remote_sensor_ip}")
         except KeyError: # If a key is not in os.environ (e.g. missing in settings.toml)
             print("A required setting was not found in settings.toml, using defaults.")
             self.remote_sensor_ip = ["192.168.1.206","192.168.1.208"]
@@ -465,6 +470,24 @@ def stringToArray(string):
     else:
         print("Warning: Initial string-array not found in settings.toml")
         return []
+        
+def overclock(flag):
+    if flag == "True":
+        if os.uname().sysname == "rp2350a":
+            microcontroller.cpu.frequency = 200_000_000
+        elif os.uname().sysname == "rp2040a":
+            microcontroller.cpu.frequency = 150_000_000
+        else:
+            pass
+        print(f"\nCPU frequency overclocked to: {microcontroller.cpu.frequency / 1_000_000} MHz\n")
+    else:
+        if os.uname().sysname == "rp2350a":
+            microcontroller.cpu.frequency = 150_000_000
+        elif os.uname().sysname == "rp2040a":
+            microcontroller.cpu.frequency = 133_000_000
+        else:
+            pass
+        print(f"\nCPU frequency set to default: {microcontroller.cpu.frequency / 1_000_000} MHz\n")
 
 ############################
 # Main
