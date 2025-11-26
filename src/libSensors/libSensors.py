@@ -1,12 +1,13 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.21.1
+# * v2025.11.26.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.21.1"
+libSensors_version = "2025.11.26.1"
 
 import time
+import os
 import busio
 import board
 import digitalio
@@ -433,5 +434,25 @@ def log10(x):
         # for board without math processor (RP2040)
         log10 = math.log(x) / math.log(10)
     return log10
-        
+    
+##############################################
+# System Utilities
+##############################################
+def overclock(flag):
+    if flag == "True":
+        if os.uname().sysname == "rp2350a":
+            microcontroller.cpu.frequency = 200_000_000
+        elif os.uname().sysname == "rp2040a":
+            microcontroller.cpu.frequency = 150_000_000
+        else:
+            pass
+        print(f"\nCPU frequency overclocked to: {microcontroller.cpu.frequency / 1_000_000} MHz\n")
+    else:
+        if os.uname().sysname == "rp2350a":
+            microcontroller.cpu.frequency = 150_000_000
+        elif os.uname().sysname == "rp2040a":
+            microcontroller.cpu.frequency = 133_000_000
+        else:
+            pass
+        print(f"\nCPU frequency set to default: {microcontroller.cpu.frequency / 1_000_000} MHz\n")        
         

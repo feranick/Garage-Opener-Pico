@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.25.3
+# * v2025.11.26.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.25.3"
+version = "2025.11.26.1"
 
 import wifi
 import time
@@ -23,7 +23,7 @@ from adafruit_httpserver import Server, MIMETypes, Response
 
 import adafruit_ntp
 
-from libSensors import SensorDevices
+from libSensors import SensorDevices, overclock
 
 DOOR_SIGNAL = board.GP22
 
@@ -470,24 +470,6 @@ def stringToArray(string):
     else:
         print("Warning: Initial string-array not found in settings.toml")
         return []
-        
-def overclock(flag):
-    if flag == "True":
-        if os.uname().sysname == "rp2350a":
-            microcontroller.cpu.frequency = 200_000_000
-        elif os.uname().sysname == "rp2040a":
-            microcontroller.cpu.frequency = 150_000_000
-        else:
-            pass
-        print(f"\nCPU frequency overclocked to: {microcontroller.cpu.frequency / 1_000_000} MHz\n")
-    else:
-        if os.uname().sysname == "rp2350a":
-            microcontroller.cpu.frequency = 150_000_000
-        elif os.uname().sysname == "rp2040a":
-            microcontroller.cpu.frequency = 133_000_000
-        else:
-            pass
-        print(f"\nCPU frequency set to default: {microcontroller.cpu.frequency / 1_000_000} MHz\n")
 
 ############################
 # Main
