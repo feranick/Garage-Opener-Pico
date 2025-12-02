@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.11.26.1
+# * v2025.12.02.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.26.1"
+version = "2025.12.02.1"
 
 import wifi
 import time
@@ -118,6 +118,11 @@ class GarageServer:
         except Exception as e:
             print(f"Unexpected critical error: {e}")
             self.fail_reboot()
+            
+        try:
+            self.device_location = os.getenv("location")
+        except:
+            self.device_location = "Hub"
 
     def fail_reboot(self):
         print("Rebooting in 5 seconds due to error...")
@@ -184,22 +189,22 @@ class GarageServer:
         def api_status(request):
             #device_id = request.args.get("device_id")
             device_id = request.query_params.get("device_id")
-
             if device_id == "loc":
                 data = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
                 remote_sensor_ip = "local"
                 state = "N/A"
+                location = self.device_location
             else:
                 if device_id[:-1] == "remote":
                     dev_type = device_id[:-1]
                     dev_num = int(device_id[-1])
                 else:
-                    print("\n\nTEST\n")
                     dev_type = "remote"
                     dev_num = 0
                 data = self.getStatusRemoteSonar(dev_num)
                 remote_sensor_ip = self.remote_sensor_ip[dev_num]
                 state = data['state']
+                location = data['location']
 
             UTC = self.getUTC()
 
@@ -223,6 +228,7 @@ class GarageServer:
             data_dict[f"{device_id}TVOC"] = data['TVOC']
             data_dict[f"{device_id}eCO2"] = data['eCO2']
             data_dict[f"{device_id}Sens"] = data['type']
+            data_dict[f"{device_id}Location"] = location
 
             json_content = json.dumps(data_dict)
 
@@ -318,7 +324,8 @@ class GarageServer:
                     'IAQ': '--',
                     'TVOC': '--',
                     'eCO2': '--',
-                    'type': '--'}
+                    'type': '--',
+                    'location': ''}
 
     def setup_ntp(self):
         try:

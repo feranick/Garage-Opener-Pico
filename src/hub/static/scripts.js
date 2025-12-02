@@ -75,6 +75,8 @@ async function updateIndoor(dev) {
     document.getElementById("Submit").value = "Door \n\n" + data.state;
     document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
     document.getElementById("Status").style.backgroundColor = "navy";
+    
+    document.getElementById(dev+"Location").textContent = data[dev+"Location"];
 
     document.getElementById(dev+"Temp").textContent = data[dev+"Temp"] + " \u00B0C";
     document.getElementById(dev+"RH").textContent = data[dev+"RH"] + " %";

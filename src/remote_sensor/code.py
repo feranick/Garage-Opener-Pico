@@ -1,11 +1,11 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
 # * Environmental and remote sonar only
-# * v2025.11.26.1
+# * v2025.12.02.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.26.1"
+version = "2025.12.02.1"
 
 import wifi
 import time
@@ -98,6 +98,11 @@ class GarageServer:
         except Exception as e:
             print(f"Unexpected critical error: {e}")
             self.fail_reboot()
+            
+        try:
+            self.device_location = os.getenv("location")
+        except:
+            self.device_location = self.ip
 
     def fail_reboot(self):
         print("Rebooting in 5 seconds due to error...")
@@ -157,6 +162,7 @@ class GarageServer:
                 "eCO2": envData['eCO2'],
                 "type": envData['type'],
                 "libSensors_version": self.sensors.sensDev.version,
+                "location": self.device_location,
             }
             json_content = json.dumps(data_dict)
 
