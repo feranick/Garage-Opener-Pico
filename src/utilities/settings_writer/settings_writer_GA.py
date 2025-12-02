@@ -2,11 +2,11 @@
 # **********************************************
 # * PicoGarageOpener - settings.toml Editor
 # * Pico driven
-# * v2025.11.26.1
+# * v2025.12.02.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.11.26.1"
+version = "2025.12.02.1"
 
 import tkinter as tk
 from tkinter import messagebox, filedialog
@@ -44,6 +44,9 @@ DEFAULT_SETTINGS = {
     'system': {
         'overclock': False
     },
+    'location': {
+        'location': 'Hub'
+    },
     'sonar': {
         'trigger_distance': '20'
     },
@@ -65,7 +68,7 @@ class ConfigApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PicoGarageOpener settings.toml Editor v."+version)
-        self.geometry("650x970")
+        self.geometry("650x1040")
         
         self.circuitpy_path = tk.StringVar(self, value="<Select CIRCUITPY Drive Path>")
         self.entries = {}
