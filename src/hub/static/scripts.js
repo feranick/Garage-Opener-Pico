@@ -47,6 +47,7 @@ async function updateStatus(isStartup) {
     
     backgroundTasks.push(updateIndoor("remote0"));
     backgroundTasks.push(updateIndoor("remote1"));
+    backgroundTasks.push(updateIndoor("remote2"));
     backgroundTasks.push(updateOutdoor());
     
     await Promise.all(backgroundTasks);
@@ -72,7 +73,7 @@ async function updateIndoor(dev) {
     document.getElementById("version").textContent = data.version;
    
     //document.getElementById("door_status").textContent = data.state;
-    document.getElementById("Submit").value = "Door \n\n" + data.state;
+    document.getElementById("Submit").value = "Door \n" + data.state;
     document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
     document.getElementById("Status").style.backgroundColor = "navy";
     

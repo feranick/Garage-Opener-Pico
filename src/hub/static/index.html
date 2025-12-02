@@ -25,19 +25,19 @@ body {
     background-color: #155084;
     font-size: 20px;
     font-weight: bold;
-    margin: 10px auto 10px;
-    height: 100px;
+    margin: 5px;
+    height: 70px;
     width: 180px;
     text-align: center;
     border-radius: 15px;
     border: none;
-    padding: 10px 20px;
+    padding: 5px 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: background-color 0.3s;
 }
 #Status:hover, #Submit:hover { background-color: #1e62a0; }
-#Submit { height: 100px; background-color: orange; }
+#Submit {background-color: orange; }
 
 #locIAQ, #locIAQ_label, #locTVOC, #locTVOC_label, #loceCO2, #loceCO2_label, #remoteIAQ, #remoteIAQ_label, #remoteTVOC, #remoteTVOC_label, #remoteeCO2, #remoteeCO2_label {
     display: none;
@@ -171,16 +171,15 @@ fieldset {
     </div>
 </fieldset>
 <fieldset id="buttons-fieldset">
-<div class="two-column-layout" id="buttons-two-cols">
-    <div class="column">
         <form name="statusForm">
             <input type="button" id="Status" value="Update Status" onclick="waitWarn(1)" />
         </form>
         <br><form name="submitForm">
             <input type="button" id="Submit" value="Loading..." onclick="waitWarn(0)" />
         </form>
-    </div>
-    <div class="two-column-layout" id="third-sens-two-cols">
+</fieldset>
+<fieldset>
+    <div class="two-column-layout" >
     <div class="column">
             <strong><span id="remote1Location"></strong>
             <br>T:
@@ -200,6 +199,26 @@ fieldset {
             <span id="remote1IAQ">...</span>
             <span id="remote1TVOC">...</span>
             <span id="remote1eCO2">...</span>
+        </div>
+        <div class="column">
+            <strong><span id="remote2Location"></strong>
+            <br>T:
+            <br>RH:
+            <br>HI:
+            <br>WB T:
+            <label id="remote2IAQ_label">IAQ: </label>
+            <label id="remote2TVOC_label">TVOC: </label>
+            <label id="remote2eCO2_label">eCO2: </label>
+        </div>
+        <div class="column">
+            <br>
+            <span id="remote2Temp">...</span>
+            <span id="remote2RH">...</span>
+            <span id="remote2HI">...</span>
+            <span id="remote2WBT">...</span>
+            <span id="remote2IAQ">...</span>
+            <span id="remote2TVOC">...</span>
+            <span id="remote2eCO2">...</span>
         </div>
     </div>
     </div>
