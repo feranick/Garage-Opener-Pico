@@ -62,7 +62,7 @@ class Conf:
             overclock(os.getenv("overclock"))
         except:
             overclock("False")
-        
+
         try:
             self.trigger_distance = float(os.getenv("trigger_distance"))
         except ValueError:
@@ -118,7 +118,7 @@ class GarageServer:
         except Exception as e:
             print(f"Unexpected critical error: {e}")
             self.fail_reboot()
-            
+
         try:
             self.device_location = os.getenv("location")
         except:
@@ -221,14 +221,14 @@ class GarageServer:
                 "UTC": UTC,
             }
 
-            data_dict[f"{device_id}Temp"] = data['temperature']
-            data_dict[f"{device_id}RH"] = data['RH']
-            data_dict[f"{device_id}HI"] = data['HI']
-            data_dict[f"{device_id}IAQ"] = data['IAQ']
-            data_dict[f"{device_id}TVOC"] = data['TVOC']
-            data_dict[f"{device_id}eCO2"] = data['eCO2']
-            data_dict[f"{device_id}Sens"] = data['type']
-            data_dict[f"{device_id}Location"] = location
+            data_dict["Temp"] = data['temperature']
+            data_dict["RH"] = data['RH']
+            data_dict["HI"] = data['HI']
+            data_dict["IAQ"] = data['IAQ']
+            data_dict["TVOC"] = data['TVOC']
+            data_dict["eCO2"] = data['eCO2']
+            data_dict["Sens"] = data['type']
+            data_dict["location"] = location
 
             json_content = json.dumps(data_dict)
 

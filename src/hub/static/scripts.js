@@ -76,30 +76,30 @@ async function updateIndoor(dev) {
     document.getElementById("Submit").style.backgroundColor = doorColor(data.state);
     document.getElementById("Status").style.backgroundColor = "navy";
     
-    document.getElementById(dev+"Location").textContent = data[dev+"Location"];
+    document.getElementById(dev+"Location").textContent = data.location;
 
-    document.getElementById(dev+"Temp").textContent = data[dev+"Temp"] + " \u00B0C";
-    document.getElementById(dev+"RH").textContent = data[dev+"RH"] + " %";
-    document.getElementById(dev+"HI").textContent = data[dev+"HI"] + " \u00B0C";
-    document.getElementById(dev+"WBT").textContent = getWetBulbTemp(data[dev+"Temp"], data[dev+"RH"], data[dev+"Sens"]) + " \u00B0C";
+    document.getElementById(dev+"Temp").textContent = data.Temp + " \u00B0C";
+    document.getElementById(dev+"RH").textContent = data.RH + " %";
+    document.getElementById(dev+"HI").textContent = data.HI + " \u00B0C";
+    document.getElementById(dev+"WBT").textContent = getWetBulbTemp(data.Temp, data.RH, data.Sens) + " \u00B0C";
     
     if(data[dev+"IAQ"] !== "--") {
         document.getElementById(dev+"IAQ").style.display = 'block';
         document.getElementById(dev+"IAQ_label").style.display = 'block';
-        document.getElementById(dev+"IAQ").textContent = data[dev+"IAQ"];
-        document.getElementById(dev+"IAQ").style.color = getIAQcolor(data[dev+"IAQ"]);
+        document.getElementById(dev+"IAQ").textContent = data.IAQ;
+        document.getElementById(dev+"IAQ").style.color = getIAQcolor(data.IAQ);
         }
     if(data[dev+"eCO2"] !== "--") {
         document.getElementById(dev+"eCO2").style.display = 'block';
         document.getElementById(dev+"eCO2_label").style.display = 'block';
-        document.getElementById(dev+"eCO2").textContent = data[dev+"eCO2"] + " ppm";
-        document.getElementById(dev+"eCO2").style.color = getCO2color(data[dev+"eCO2"]);
+        document.getElementById(dev+"eCO2").textContent = data.eCO2 + " ppm";
+        document.getElementById(dev+"eCO2").style.color = getCO2color(data.eCO2);
         }
     if(data[dev+"TVOC"] !== "--") {
         document.getElementById(dev+"TVOC").style.display = 'block';
         document.getElementById(dev+"TVOC_label").style.display = 'block';
-        document.getElementById(dev+"TVOC").textContent = data[dev+"TVOC"] + " ppb";
-        document.getElementById(dev+"TVOC").style.color = getTVOCcolor(data[dev+"TVOC"]);
+        document.getElementById(dev+"TVOC").textContent = data.TVOC + " ppb";
+        document.getElementById(dev+"TVOC").style.color = getTVOCcolor(data.TVOC);
         }
     }
 
