@@ -190,7 +190,11 @@ async function waitWarn(a) {
 }
 //document.addEventListener('DOMContentLoaded', updateStatus);
 document.addEventListener('DOMContentLoaded', () => {
-  updateStatus(true);
+    const sUIBtn = document.getElementById('simpleUIBtn');
+    sUIBtn.addEventListener('click', function() {
+        window.location.href = '/simple.html';
+    });
+    updateStatus(true);
 });
 setInterval(updateStatus, 30000, false);
 

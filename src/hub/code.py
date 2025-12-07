@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.12.02.2
+# * v2025.12.07.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.12.02.2"
+version = "2025.12.07.1"
 
 import wifi
 import time
@@ -242,6 +242,14 @@ class GarageServer:
         @self.server.route("/scripts.js")
         def icon_route(request):
             return self._serve_static_file(request, 'static/scripts.js')
+            
+        @self.server.route("/simple.html")
+        def base_route(request):
+            return self._serve_static_file(request, 'static/simple.html')
+        
+        @self.server.route("/simple.js")
+        def icon_route(request):
+            return self._serve_static_file(request, 'static/simple.js')
 
         @self.server.route("/manifest.json")
         def icon_route(request):

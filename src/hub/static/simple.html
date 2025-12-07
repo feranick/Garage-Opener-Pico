@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pico Garage Opener</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="icon" type="image/x-icon" href="./favicon.ico">
+<link rel="icon" href="./icon.png">
+<link rel="apple-touch-icon" href="./icon192.png">
+<link rel="manifest" href="./manifest.json">
+</head>
+<body>
+<style>
+body {
+    margin: 0;
+    font-family: Helvetica, sans-serif;
+    text-align: center;
+    padding: 11px 0;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #f0f0f0;
+}
+#Submit{
+    color: white;
+    background-color: orange;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 5px;
+    height: 200px;
+    width: 300px;
+    text-align: center;
+    border-radius: 15px;
+    border: none;
+    padding: 5px 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#fullUIBtn{
+    color: white;
+    background-color: #155084;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 5px;
+    height: 50px;
+    width: 100px;
+    text-align: center;
+    border-radius: 15px;
+    border: none;
+    padding: 5px 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+fieldset {
+    background-color: #C0C0C0;
+    color: black;
+    max-width: 350px;
+    margin: 10px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    align-items: center
+    }
+    fieldset span {
+    min-width: 50px;
+    display: inline-block;
+    font-weight: 700;
+    color: #00008B;
+    }
+    small {
+        display: block; margin-top: 5px;
+    }
+#buttons-fieldset {
+    background-color: #f0f0f0;
+    padding: 5px;
+    border: 0px;
+    max-width: 390px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+    
+</style>
+<script type="text/javascript" src="simple.js" ></script>
+
+<fieldset id="buttons-fieldset">
+        <br><form name="submitForm">
+            <input type="button" id="Submit" value="Operate Door" onclick="waitWarn(0)" />
+        </form>
+</fieldset>
+<label id="warnLabel"></label>
+
+<small><small>Device IP: <span id="ip_address">N/A</span></small></small>
+<small><small>Version: <span id="version">N/A</span></small></small>
+
+<br><button id="fullUIBtn">Full UI</button>
+
+</body>
+</html>
