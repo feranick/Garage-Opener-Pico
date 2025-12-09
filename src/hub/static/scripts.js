@@ -256,8 +256,8 @@ async function getOM(coords) {
         if (typeof r[keys[i]] !== 'number' || r[keys[i]] === null || r[keys[i]] === undefined) {
             r[keys[i]] = DEFAULT_MISSING;
         }}
-    console.log("Open-meteo: ");
-    console.log(r);
+    //console.log("Open-meteo: ");
+    //console.log(r);
     return r;
     }
     
@@ -270,11 +270,9 @@ async function getNWS(coords) {
     const omNextData = await getFeed(om_weather_url+"&forecast_days=2&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,wet_bulb_temperature_2m,weather_code,surface_pressure,visibility");
     
     const nws_coords_url = "https://api.weather.gov/points/"+coords[0]+","+coords[1]
-    const coordData = (await getFeed(nws_coords_url));
+    const coordData = await getFeed(nws_coords_url);
     const nws_stations_url = coordData["properties"]["observationStations"]
-    console.log(nws_stations_url);
-    const stationData = (await getFeed(nws_stations_url));
-    console.log(stationData["features"][0]["id"]);
+    const stationData = await getFeed(nws_stations_url);
     const nws_url = stationData["features"][0]["id"]+"/observations/latest/";
 
     const data = (await getFeed(nws_url));
