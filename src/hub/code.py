@@ -84,6 +84,8 @@ class Conf:
 ############################
 class GarageServer:
     def __init__(self, control, sensors):
+        self.control = control
+        self.sensors = sensors
         try:
             self.remote_sensor_ip = os.getenv("remote_sensor_ip").split(',')
             self.sonar_location = os.getenv("sonar_location")
@@ -103,8 +105,6 @@ class GarageServer:
         except Exception as e:
             print(f"Error reading settings: {e}")
 
-        self.control = control
-        self.sensors = sensors
         self.ntp = None
         self.server = None
         self.ip = "0.0.0.0"
