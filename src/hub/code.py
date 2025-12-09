@@ -245,11 +245,11 @@ class GarageServer:
         @self.server.route("/scripts.js")
         def icon_route(request):
             return self._serve_static_file(request, 'static/scripts.js')
-            
+
         @self.server.route("/simple.html")
         def base_route(request):
             return self._serve_static_file(request, 'static/simple.html')
-        
+
         @self.server.route("/simple.js")
         def icon_route(request):
             return self._serve_static_file(request, 'static/simple.js')
@@ -378,13 +378,14 @@ class Sensors:
         self.sensDev = SensorDevices()
 
         # Enable for the use of Sonar in main device
+        '''
         self.sonar = None
         try:
             self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
         except Exception as e:
             print(f"Failed to initialize HCSR04: {e}")
-
         self.trigger_distance = conf.trigger_distance
+        '''
 
         self.envSensor1 = None
         self.envSensor1_name = conf.sensor1_name
