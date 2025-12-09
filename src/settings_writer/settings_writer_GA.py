@@ -2,11 +2,11 @@
 # **********************************************
 # * PicoGarageOpener - settings.toml Editor
 # * Pico driven
-# * v2025.12.02.1
+# * v2025.12.09.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.12.02.1"
+version = "2025.12.09.1"
 
 import tkinter as tk
 from tkinter import messagebox, filedialog
@@ -24,6 +24,15 @@ SENSOR_CHOICES = [
     "BME280",
     "BME680",
     "ENS160_AHT21",
+    "None"
+]
+
+# --- Sensor and Boolean Choices ---
+SONAR_LOCATIONS = [
+    "loc",
+    "remote0",
+    "remote1",
+    "remote2",
     "None"
 ]
 
@@ -48,7 +57,8 @@ DEFAULT_SETTINGS = {
         'location': 'Hub'
     },
     'sonar': {
-        'trigger_distance': '20'
+        'trigger_distance': '20',
+        'sonar_location': 'remote1',
     },
     'sensors': {
         'sensor1_name': 'AHT21',
@@ -68,7 +78,7 @@ class ConfigApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("PicoGarageOpener settings.toml Editor v."+version)
-        self.geometry("650x1040")
+        self.geometry("650x1070")
         
         self.circuitpy_path = tk.StringVar(self, value="<Select CIRCUITPY Drive Path>")
         self.entries = {}
@@ -192,6 +202,13 @@ class ConfigApp(tk.Tk):
                         var,
                         *ssids)
                     widget.config(width=37, font=self.font_style)
+                    
+                if section == 'sonar' and key.endswith('_location'):
+                    # Sensor Name Dropdown
+                    initial_choice = str(default_val) if str(default_val) in SONAR_LOCATIONS else SONAR_LOCATIONS[0]
+                    var.set(initial_choice)
+                    widget = tk.OptionMenu(scrollable_frame, var, *SONAR_LOCATIONS)
+                    widget.config(width=37, font=self.font_style) 
                 
                 if section == 'sensors' and key.endswith('_name'):
                     # Sensor Name Dropdown
