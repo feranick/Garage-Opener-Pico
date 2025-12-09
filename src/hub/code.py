@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.12.09.2
+# * v2025.12.09.3
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.12.09.2"
+version = "2025.12.09.3"
 
 import wifi
 import time
@@ -86,6 +86,7 @@ class GarageServer:
     def __init__(self, control, sensors):
         try:
             self.remote_sensor_ip = os.getenv("remote_sensor_ip").split(',')
+            self.sonar_location = os.getenv("sonar_location")
             self.station = os.getenv("station")
             self.zipcode = os.getenv("zipcode")
             self.country = os.getenv("country")
@@ -93,7 +94,8 @@ class GarageServer:
             print(f"\nRemote sensors IP: {self.remote_sensor_ip}")
         except KeyError: # If a key is not in os.environ (e.g. missing in settings.toml)
             print("A required setting was not found in settings.toml, using defaults.")
-            self.remote_sensor_ip = ["192.168.1.206","192.168.1.208"]
+            self.remote_sensor_ip = ["192.168.1.207","192.168.1.208","192.168.1.206"]
+            self.sonar_location = "loc"
             self.station = "kbos"
             self.zipcode = "02139"
             self.country = "US"
@@ -219,6 +221,7 @@ class GarageServer:
                 "country": self.country,
                 "version": version,
                 "UTC": UTC,
+                "sonar_location": self.sonar_location,
             }
 
             data_dict["Temp"] = data['temperature']
@@ -374,7 +377,6 @@ class Sensors:
     def __init__(self, conf):
         self.sensDev = SensorDevices()
 
-        '''
         # Enable for the use of Sonar in main device
         self.sonar = None
         try:
@@ -383,7 +385,6 @@ class Sensors:
             print(f"Failed to initialize HCSR04: {e}")
 
         self.trigger_distance = conf.trigger_distance
-        '''
 
         self.envSensor1 = None
         self.envSensor1_name = conf.sensor1_name

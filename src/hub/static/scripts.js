@@ -2,6 +2,7 @@ let coords = null;
 let zipcode = null;
 let country = null;
 let ow_api_key = null;
+let sonar_location = "loc";
 
 ////////////////////////////////////
 // Get UTC Time
@@ -38,7 +39,6 @@ async function updateStatus(isStartup) {
     const backgroundTasks = [];
     if (isStartup == true) {
         await updateIndoor("loc");
-        console.log("Setting up Coords");
         await getCoords();
         }
     else {
@@ -62,6 +62,7 @@ async function updateStatus(isStartup) {
 // use dev = "loc" or "remote" to select between sensors
 async function updateIndoor(dev) {
     const data = await fetchData(dev);
+    sonar_location = data.sonar_location;
     zipcode = data.zipcode;
     country = data.country;
     ow_api_key = data.ow_api_key;
@@ -167,17 +168,22 @@ async function waitWarn(a) {
     // document.getElementById("warnLabel").innerHTML = "Please wait...";
     document.getElementById("Status").disabled = true;
     document.getElementById("Status").style.backgroundColor = "#155084";
+    document.getElementById("Submit").disabled = true;
+    document.getElementById("Submit").style.backgroundColor = "orange";
 
     if (a === 0) {
         document.getElementById("Submit").disabled = true;
-        document.getElementById("Submit").style.backgroundColor = "orange";
-        
+        document.getElementById("Submit").style.backgroundColor = "#FFB347";
+        document.getElementById("Submit").value = "Door \n operating...";
+        console.log("Sending command to Door.");
         try {
             const response = await fetch('/api/run');
             
             if (response.ok) {
-                console.log("Run control successful.");
-                setTimeout(updateStatus, 1000, false);
+                console.log("Command to Door successfully sent.");
+                //setTimeout(updateStatus, 1000, false);
+                //updateStatus(false);
+                updateIndoor(sonar_location);
             } else {
                 throw new Error('Run command failed with status: ' + response.status);
             }
@@ -186,9 +192,12 @@ async function waitWarn(a) {
             document.getElementById("warnLabel").textContent = "Error during RUN.";
             updateStatus(false);
         }
+        
     } else if (a === 1) {
         updateStatus(false);
     }
+    document.getElementById("Submit").disabled = false;
+    document.getElementById("Submit").style.backgroundColor = "orange";
 }
 //document.addEventListener('DOMContentLoaded', updateStatus);
 document.addEventListener('DOMContentLoaded', () => {
@@ -198,6 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateStatus(true);
 });
+
+//Set interval for autoreload.
 setInterval(updateStatus, 30000, false);
 
 ////////////////////////////////////
