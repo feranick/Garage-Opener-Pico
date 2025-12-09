@@ -153,6 +153,8 @@ async function updateOutdoor() {
     document.getElementById("ext_weather").textContent = nws.presentWeather;
     document.getElementById("ext_next_weather_am").textContent = nws.futureWeatherAM;
     document.getElementById("ext_next_weather_pm").textContent = nws.futureWeatherPM;
+    document.getElementById("ext_next_temp_am").textContent = nws.futureTempAM+" \u00b0C";;
+    document.getElementById("ext_next_temp_pm").textContent = nws.futureTempPM+" \u00b0C";;
     document.getElementById("ext_visibility").textContent = nws.visibility+" m";
     document.getElementById("ext_dewpoint").textContent = nws.dewpoint+" \u00b0C";
     document.getElementById("ext_wetbulb").textContent = nws.wetbulb+" \u00b0C";
@@ -346,6 +348,8 @@ async function getNWS(coords) {
         }
     r.futureWeatherAM = getWeatherDescription(omNextData['hourly']['weather_code'][33]);
     r.futureWeatherPM = getWeatherDescription(omNextData['hourly']['weather_code'][38]);
+    r.futureTempAM = omNextData['hourly']['temperature_2m'][33];
+    r.futureTempPM = omNextData['hourly']['temperature_2m'][38];
     return r;
     }
 
