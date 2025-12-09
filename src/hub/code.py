@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.12.09.3
+# * v2025.12.09.4
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2025.12.09.3"
+version = "2025.12.09.4"
 
 import wifi
 import time
@@ -65,8 +65,10 @@ class Conf:
 
         try:
             self.trigger_distance = float(os.getenv("trigger_distance"))
+            self.sonar_location = os.getenv("sonar_location")
         except ValueError:
             self.trigger_distance = 20.0
+            self.sonar_location = "loc"
             print(f"Warning: Invalid trigger_distance '{trig_dist_env}' in settings.toml. Using default.")
 
         try:
@@ -194,7 +196,10 @@ class GarageServer:
             if device_id == "loc":
                 data = self.sensors.getEnvData(self.sensors.envSensor1, self.sensors.envSensor1_name, self.sensors.sensor1_correct_temp)
                 remote_sensor_ip = "local"
-                state = "N/A"
+                if self.sensors.sonar_location == "loc":
+                    state = self.sensors.checkStatusSonar()
+                else:
+                    state = "N/A"
                 location = self.device_location
             else:
                 if device_id[:-1] == "remote":
@@ -377,16 +382,17 @@ class Sensors:
     def __init__(self, conf):
         self.sensDev = SensorDevices()
 
-        # Enable for the use of Sonar in main device
-        '''
-        self.sonar = None
-        try:
-            self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
-        except Exception as e:
-            print(f"Failed to initialize HCSR04: {e}")
-        self.trigger_distance = conf.trigger_distance
-        '''
-
+        self.sonar_location = conf.sonar_location
+        
+        if self.sonar_location == "loc":
+            self.sonar = None
+            try:
+                self.sonar = adafruit_hcsr04.HCSR04(trigger_pin=SONAR_TRIGGER, echo_pin=SONAR_ECHO)
+                print("Sonar HCSR04 initialized")
+            except Exception as e:
+                print(f"Failed to initialize HCSR04: {e}")
+            self.trigger_distance = conf.trigger_distance
+            
         self.envSensor1 = None
         self.envSensor1_name = conf.sensor1_name
         self.envSensor1_pins = conf.sensor1_pins
@@ -448,7 +454,7 @@ class Sensors:
                     'eCO2': '--',
                     'HI': '--',
                     'type': 'CPU adj'}
-    '''
+    
     # Enable for Sonar in main device
     def checkStatusSonar(self):
         if not self.sonar:
@@ -471,7 +477,6 @@ class Sensors:
                 time.sleep(0.5)
         print(" Sonar status not available")
         return "N/A"
-    '''
 
 ############################
 # Utilities
