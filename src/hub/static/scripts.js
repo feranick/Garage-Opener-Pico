@@ -61,12 +61,12 @@ async function updateStatus(isStartup) {
 // Logic for updating Indoor values
 // use dev = "loc" or "remote" to select between sensors
 async function updateIndoor(dev) {
-    data = await fetchData(dev);
+    const data = await fetchData(dev);
     zipcode = data.zipcode;
     country = data.country;
     ow_api_key = data.ow_api_key;
         
-    datetime = getCurrentDateTimeUTC(data.UTC);
+    const datetime = getCurrentDateTimeUTC(data.UTC);
     document.getElementById("datetime").textContent = datetime;
     
     document.getElementById("ip_address").textContent = data.ip;
@@ -106,10 +106,10 @@ async function updateIndoor(dev) {
 
 // Logic for updating Outdoor values
 async function updateOutdoor() {
-    base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
-    nws = await getNWS(coords);
+    const base_forecast_url = "https://forecast.weather.gov/MapClick.php?lat="+coords[0]+"&lon="+coords[1];
+    const nws = await getNWS(coords);
     //aqi = await getOW(coords, data.ow_api_key);
-    aqi = await getOM(coords);
+    const aqi = await getOM(coords);
     
     document.getElementById("station").innerHTML = "<a href='"+base_forecast_url+"'>"+nws.stationName+"</a>";
     
@@ -211,8 +211,8 @@ async function getFeed(url) {
 // Ger OpenWeather location and weather data
 //////////////////////////////////////////////
 async function getCoords() {
-    geo_url = "https://api.openweathermap.org/geo/1.0/zip?zip="+zipcode+","+country+"&appid="+ow_api_key;
-    let data = (await getFeed(geo_url));
+    const geo_url = "https://api.openweathermap.org/geo/1.0/zip?zip="+zipcode+","+country+"&appid="+ow_api_key;
+    const data = (await getFeed(geo_url));
     coords = [data["lat"], data["lon"]];
     //return [data["lat"], data["lon"]];
     }
@@ -220,11 +220,9 @@ async function getCoords() {
 async function getOM(coords) {
     DEFAULT_MISSING = "--";
     
-    aqi_om_url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="+coords[0]+"&longitude="+coords[1];
-    
-    let omNowData = (await getFeed(aqi_om_url+"&current=us_aqi,pm10,pm2_5,uv_index,ozone,carbon_dioxide,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ammonia,methane"))
-    
-    let omNextData = (await getFeed(aqi_om_url+"&forecast_days=2&hourly=us_aqi,pm10,pm2_5,uv_index,ozone,carbon_dioxide,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ammonia,methane"))
+    const aqi_om_url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="+coords[0]+"&longitude="+coords[1];
+    const omNowData = await getFeed(aqi_om_url+"&current=us_aqi,pm10,pm2_5,uv_index,ozone,carbon_dioxide,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ammonia,methane");
+    const omNextData = await getFeed(aqi_om_url+"&forecast_days=2&hourly=us_aqi,pm10,pm2_5,uv_index,ozone,carbon_dioxide,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ammonia,methane");
 
     let r = {};
     r.aqi_now = omNowData["current"]["us_aqi"];
@@ -251,7 +249,7 @@ async function getOM(coords) {
     r.nh3_next = omNextData["hourly"]["ammonia"][36]
     r.ch4_next = omNextData["hourly"]["methane"][36];
     
-    const keys = Object.keys(r);
+    let keys = Object.keys(r);
     for (var i = 0; i < keys.length; i++) {
         if (typeof r[keys[i]] !== 'number' || r[keys[i]] === null || r[keys[i]] === undefined) {
             r[keys[i]] = DEFAULT_MISSING;
@@ -265,21 +263,19 @@ async function getOM(coords) {
 // Get NWS data
 ////////////////////////////////////
 async function getNWS(coords) {
-    om_weather_url = "https://api.open-meteo.com/v1/forecast?latitude="+coords[0]+"&longitude="+coords[1];
+    const om_weather_url = "https://api.open-meteo.com/v1/forecast?latitude="+coords[0]+"&longitude="+coords[1];
+    const omNowData = await getFeed(om_weather_url+"&current=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,wet_bulb_temperature_2m,weather_code,surface_pressure,visibility");
+    const omNextData = await getFeed(om_weather_url+"&forecast_days=2&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,wet_bulb_temperature_2m,weather_code,surface_pressure,visibility");
     
-    let omNowData = (await getFeed(om_weather_url+"&current=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,wet_bulb_temperature_2m,weather_code,surface_pressure,visibility"))
-    
-    let omNextData = (await getFeed(om_weather_url+"&forecast_days=2&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,wet_bulb_temperature_2m,weather_code,surface_pressure,visibility"))
-    
-    nws_coords_url = "https://api.weather.gov/points/"+coords[0]+","+coords[1]
-    let coordData = (await getFeed(nws_coords_url));
-    nws_stations_url = coordData["properties"]["observationStations"]
+    const nws_coords_url = "https://api.weather.gov/points/"+coords[0]+","+coords[1]
+    const coordData = (await getFeed(nws_coords_url));
+    const nws_stations_url = coordData["properties"]["observationStations"]
     console.log(nws_stations_url);
-    let stationData = (await getFeed(nws_stations_url));
+    const stationData = (await getFeed(nws_stations_url));
     console.log(stationData["features"][0]["id"]);
-    nws_url = stationData["features"][0]["id"]+"/observations/latest/";
+    const nws_url = stationData["features"][0]["id"]+"/observations/latest/";
 
-    let data = (await getFeed(nws_url));
+    const data = (await getFeed(nws_url));
     let r = {};
     
     let keys = [
@@ -334,7 +330,7 @@ async function getNWS(coords) {
         }}
     r.wetbulb = omNowData['current']['wet_bulb_temperature_2m'];
     r.stationName = data['properties']['stationName'];
-    let weather_list = data['properties']['presentWeather'];
+    const weather_list = data['properties']['presentWeather'];
 
     if (weather_list && weather_list.length > 0) {
         weather_value = weather_list[0]['weather'];
@@ -458,7 +454,8 @@ function getIAQcolor(value) {
 }
 */
 
-function getIAQcolor(value) {
+function getIAQcolor(code) {
+    value = parseInt(code);
     if (value == 1) {
         return "cyan";
     } else if (value == 2) {
@@ -473,7 +470,8 @@ function getIAQcolor(value) {
         return "black";
     }}
     
-function getCO2color(value) {
+function getCO2color(code) {
+    value = parseInt(code);
     if (value >= 0 && value <= 400) {
         return "LimeGreen";
     } else if (value >= 401 && value < 800) {
@@ -491,7 +489,8 @@ function getCO2color(value) {
     }
 }
 
-function getTVOCcolor(value) {
+function getTVOCcolor(code) {
+    value = parseInt(code);
     if (value >= 0 && value <= 65) {
         return "cyan";
     } else if (value >= 66 && value < 220) {
