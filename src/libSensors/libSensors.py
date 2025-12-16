@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.11.26.2
+# * v2025.12.15.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.11.26.2"
+libSensors_version = "2025.12.15.1"
 
 import time
 import os
@@ -153,19 +153,27 @@ class SensorDevices:
     ##############################################
     def initMAX31865(self, pins):
         import adafruit_max31865
+        ref_resistor = 431
+        rtd_nominal=100
+        wires=2
+        
         CLK = getattr(board, "GP" + str(pins[0]))
         MOSI = getattr(board, "GP" + str(pins[1]))
         MISO = getattr(board, "GP" + str(pins[2]))
         OUT = getattr(board, "GP" + str(pins[3]))
         spi = busio.SPI(CLK, MISO=MISO, MOSI=MOSI)
         cs = digitalio.DigitalInOut(OUT)
-        envSensor = adafruit_max31865.MAX31865(spi, cs)
+        envSensor = adafruit_max31865.MAX31865(spi, cs,
+            ref_resistor=ref_resistor,
+            rtd_nominal=rtd_nominal,
+            wires=wires)
         
         # MAX8165 auto-conversion needs to be True, 
         # for continuous measurements (50-60Hz), 
         # otherwise off to redece selfheating.
         #envSensor.auto_convert = True
         print("MAX31865 Auto-Conversion is:",envSensor.auto_convert)
+        print(f"MAX31865 Fault code: {envSensor.fault}")
         
         return envSensor
         
