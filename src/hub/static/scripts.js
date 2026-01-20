@@ -33,18 +33,19 @@ async function fetchData(dev) {
 //////////////////////////////////////////////
 // Logic when pushing Update Status button
 //////////////////////////////////////////////
-async function updateStatus(isStartup) {
+async function updateInitial() {
+    await updateIndoor("loc");
+    await getCoords();
+    document.getElementById("Status").value = "Update";
+    document.getElementById("warnLabel").textContent = "";
+    }
+
+async function updateStatus() {
     document.getElementById("Status").value = "Loading...";
 
     const backgroundTasks = [];
-    if (isStartup == true) {
-        await updateIndoor("loc");
-        await getCoords();
-        }
-    else {
-        backgroundTasks.push(updateIndoor("loc"));
-        }
     
+    backgroundTasks.push(updateIndoor("loc"));
     backgroundTasks.push(updateIndoor("remote0"));
     backgroundTasks.push(updateIndoor("remote1"));
     backgroundTasks.push(updateIndoor("remote2"));
@@ -182,7 +183,7 @@ async function waitWarn(a) {
             if (response.ok) {
                 console.log("Command to Door successfully sent.");
                 //setTimeout(updateStatus, 1000, false);
-                //updateStatus(false);
+                //updateStatus();
                 updateIndoor(sonar_location);
             } else {
                 throw new Error('Run command failed with status: ' + response.status);
@@ -190,11 +191,11 @@ async function waitWarn(a) {
         } catch (error) {
             console.error('Run Error:', error);
             document.getElementById("warnLabel").textContent = "Error during RUN.";
-            updateStatus(false);
+            updateStatus();
         }
         
     } else if (a === 1) {
-        updateStatus(false);
+        updateStatus();
     }
     document.getElementById("Submit").disabled = false;
     document.getElementById("Submit").style.backgroundColor = "orange";
@@ -205,11 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
     sUIBtn.addEventListener('click', function() {
         window.location.href = '/simple.html';
     });
-    updateStatus(true);
+    updateInitial();
 });
 
 //Set interval for autoreload.
-setInterval(updateStatus, 30000, false);
+setInterval(updateStatus, 50000);
 
 ////////////////////////////////////
 // Get feed from DB - generic
