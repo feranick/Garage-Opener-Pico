@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.01.20.1
+# * v2025.03.06.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2026.01.20.1"
+version = "2026.03.06.1"
 
 import wifi
 import time
@@ -331,7 +331,10 @@ class GarageServer:
             r.close()
             return data
         except Exception as e:
-            print(f"Sonar not available: {e}")
+            if e.errno == 119:  # EINPROGRESS
+                print("Connection in progress... waiting.")
+            else:
+                print(f"Sonar not available: {e}")
             return {'state': 'N/A',
                     'temperature': '--',
                     'pressure': '--',
@@ -383,7 +386,7 @@ class Sensors:
         self.sensDev = SensorDevices()
 
         self.sonar_location = conf.sonar_location
-        
+
         if self.sonar_location == "loc":
             self.sonar = None
             try:
@@ -392,7 +395,7 @@ class Sensors:
             except Exception as e:
                 print(f"Failed to initialize HCSR04: {e}")
             self.trigger_distance = conf.trigger_distance
-            
+
         self.envSensor1 = None
         self.envSensor1_name = conf.sensor1_name
         self.envSensor1_pins = conf.sensor1_pins
@@ -454,7 +457,7 @@ class Sensors:
                     'eCO2': '--',
                     'HI': '--',
                     'type': 'CPU adj'}
-    
+
     # Enable for Sonar in main device
     def checkStatusSonar(self):
         if not self.sonar:
