@@ -1,10 +1,10 @@
 # **********************************************
 # * Garage Opener - Rasperry Pico W
-# * v2025.03.06.1
+# * v2025.03.19.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-version = "2026.03.06.1"
+version = "2026.03.19.1"
 
 import wifi
 import time
@@ -19,7 +19,7 @@ import ssl
 import json
 
 import adafruit_requests
-from adafruit_httpserver import Server, MIMETypes, Response
+from adafruit_httpserver import Server, MIMETypes, Response, FileResponse
 
 import adafruit_ntp
 
@@ -279,32 +279,23 @@ class GarageServer:
         # Start the server
         self.server.start(host=self.ip, port=80)
 
-    def _serve_static_file(self, request, filepath, content_type="text/html"):
-        """Manually reads a file and returns an HTTP response with a customizable content type."""
-
-        # Determine if the file should be read in binary mode
-        is_binary = filepath.endswith(('.ico', '.png'))
-        mode = "rb" if is_binary else "r"
-        encoding = None if is_binary else 'utf-8'
-
+    def _serve_static_file(self, request, filepath, content_type=None):
+        """Streams a file from flash memory using FileResponse to prevent memory fragmentation."""
         try:
-            with open(filepath, mode, encoding=encoding) as f:
-                content = f.read()
-
-            headers = {"Content-Type": content_type}
-
-            # The Response object handles both text (str) and binary (bytes) content
-            return Response(request, content, headers=headers)
+            # We use os.stat to verify the file exists before returning the response. 
+            # This allows us to catch a missing file and cleanly return a 404.
+            os.stat(filepath)
+            
+            # FileResponse automatically handles chunked reading and streaming
+            if content_type:
+                return FileResponse(request, filepath, content_type=content_type)
+            
+            return FileResponse(request, filepath)
 
         except OSError as e:
             # Handle File Not Found or other OS errors
-            print(f"Error opening or reading file {filepath}: {e}")
-            try:
-                # The response content here should be simple text
-                return Response(request, "File Not Found", {}, 404)
-            except Exception as e2:
-                print(f"Could not set 404 status: {e2}")
-                return Response(request, "File Not Found. Check console.")
+            print(f"Error locating or accessing file {filepath}: {e}")
+            return Response(request, "File Not Found", status=404)
 
     def serve_forever(self):
         while True:
