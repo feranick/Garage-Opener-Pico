@@ -1,281 +1,718 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Pico Garage Opener</title>
+<title>LabMonitor - Plotter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="mobile-web-app-capable" content="yes" />
 <link rel="icon" type="image/x-icon" href="./favicon.ico">
 <link rel="icon" href="./icon.png">
-<link rel="apple-touch-icon" href="./icon192.png">
+<link rel="apple-touch-icon" href="./icon180.png">
 <link rel="manifest" href="./manifest.json">
-</head>
-<body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
-body {
-    margin: 0;
-    font-family: Helvetica, sans-serif;
-    text-align: center;
-    padding: 11px 0;
-    font-size: 20px;
-    font-weight: bold;
-    background-color: #f0f0f0;
-}
-#Submit, #Status, #simpleUIBtn{
-    color: white;
-    background-color: #155084;
-    font-size: 20px;
-    font-weight: bold;
-    margin: 5px;
-    height: 70px;
-    width: 180px;
-    text-align: center;
-    border-radius: 15px;
-    border: none;
-    padding: 5px 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-#Status:hover, #Submit:hover { background-color: #1e62a0; }
-#Submit {background-color: orange; }
-
-#locIAQ, #locIAQ_label, #locTVOC, #locTVOC_label, #loceCO2, #loceCO2_label, #remoteIAQ, #remoteIAQ_label, #remoteTVOC, #remoteTVOC_label, #remoteeCO2, #remoteeCO2_label {
-    display: none;
+    body {
+        font-family: Helvetica, sans-serif;
+        text-align: center;
+        background-color: #f0f0f0;
+        padding: 10px;
+    }
+    .chart-container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 20px auto;
+        background-color: white;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    fieldset {
+        background-color: #C0C0C0;
+        max-width: 600px;
+        margin: 10px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        align-items: center;
+    }
+    button, input[type="number"], input[type="text"] {
+        font-size: 16px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 2px solid #aaa;
+    }
+    button {
+        background-color: #155084;
+        color: white;
+        cursor: pointer;
+        border-color: #155084;
+    }
+    button:hover {
+        background-color: #1e62a0;
+    }
+    button#toggleButton.stopped {
+        background-color: #006400; /* Green for 'Start' */
+        border-color: #006400;
     }
 
-fieldset {
-    background-color: #C0C0C0;
-    color: black;
-    max-width: 350px;
-    margin: 10px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    align-items: center
+    button#clearButton {
+        background-color: #a02c2c; /* Dark red */
+        border-color: #a02c2c;
+    }
+    button#clearButton:hover {
+        background-color: #c93434;
+    }
+
+    input[type="number"] {
+        width: 60px;
+        text-align: center;
+    }
+    input[type="text"] {
+        width: 400px;
+    }
+    .checkbox-group legend {
+        width: 100%; /* Ensure legend is on its own line */
+        font-weight: bold;
+    }
+    .checkbox-group label {
+        margin-right: 10px;
     }
     .two-column-layout {
-    display: flex;
-    gap: 5px;
-    text-align: left;
-    font-size: 18px;
-    width: 100%;
+        display: flex;
+        gap: 5px;
+        text-align: left;
+        font-size: 18px;
+        width: 100%;
     }
     .column {
-    flex: 1;
-    padding-left: 0px;
+        flex: 1;
+        padding-left: 10px;
     }
     fieldset span {
-    min-width: 0px;
-    display: inline-block;
-    font-weight: 700;
-    color: #00008B;
+        min-width: 50px;
+        display: inline-block;
+        font-weight: 700;
+        color: #00008B; /* Dark blue for values */
     }
-    small {
-        display: block; margin-top: 5px;
-    }
-
-#buttons-fieldset {
-    background-color: #f0f0f0;
-    padding: 5px;
-    border: 0px;
-    max-width: 390px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    }
-#buttons-two-cols {
-    gap: 20px;
-    }
-#third-sens-two-cols {
-    background-color: #C0C0C0;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    }
-
-#outdoor-fieldset {
-    background-color: #f0f0f0;
-    padding: 0px;
-    border: 0px;
-    margin: 0px auto;
-    max-width: 390px;
-    }
-#outdoor-two-cols {
-    gap: 10px;
-    width: 100%;
-    }
-#outdoor-col1 {
-    margin: 0px auto;
-    padding: 20px;
-    border-radius: 10px;
-    background-color: #C0C0C0;
-    }
-#outdoor-col2 {
-    display: flex;
-    margin: 0px auto;
-    padding: 10px;
-    border-radius: 10px;
-    background-color: #C0C0C0;
-    text-align: center;
-    align-items: top;
-    justify-content: center;
-    }
-    
+    small { display: block; margin-top: 5px; }
 </style>
-<script type="text/javascript" src="scripts.js" ></script>
+</head>
+<body>
+<div class="chart-container">
+    <canvas id="sensorChart"></canvas>
+</div>
 
 <fieldset>
+    <legend style="width: 100%; text-align: center; font-weight: bold;">
+        <span id="device_name"></span>   <span id="datetime_current">Time N/A</span>
+    </legend>
     <div class="two-column-layout">
         <div class="column">
-            <strong><span id="locLocation"></strong>
-            <br>T:
+            <strong>Sensor 1:</strong>
+            <br>Temperature:
             <br>RH:
-            <br>HI:
-            <br>WB T:
-            <label id="locIAQ_label">IAQ: </label>
-            <label id="locTVOC_label">TVOC: </label>
-            <label id="loceCO2_label">eCO2: </label>
+            <br>Wet Bulb T:
+            <br>Heat Index:
         </div>
         <div class="column">
-            <br><span id="locTemp">...</span>
-            <br><span id="locRH">...</span>
-            <br><span id="locHI">...</span>
-            <br><span id="locWBT">...</span>
-            <span id="locIAQ"></span>
-            <span id="locTVOC"></span>
-            <span id="loceCO2"></span>
+            <br>
+            <span id="sens1_Temp_current">...</span>
+            <br><span id="sens1_RH_current">...</span>
+            <br><span id="sens1_WBT_current">...</span>
+            <br><span id="sens1_HI_current">...</span>
         </div>
         <div class="column">
-            <strong><span id="remote0Location"></strong>
-            <br>T:
-            <br>RH:
-            <br>HI:
-            <br>WB T:
-            <label id="remote0IAQ_label">IAQ: </label>
-            <label id="remote0TVOC_label">TVOC: </label>
-            <label id="remote0eCO2_label">eCO2: </label>
+            <strong>Sensor 2:</strong>
+            <br>Temperature:
+            <br><br><strong>Sensor 3:</strong>
+            <br>Temperature:
         </div>
         <div class="column">
-            <br><span id="remote0Temp">...</span>
-            <br><span id="remote0RH">...</span>
-            <br><span id="remote0HI">...</span>
-            <br><span id="remote0WBT">...</span>
-            <span id="remote0IAQ"></span>
-            <span id="remote0TVOC"></span>
-            <span id="remote0eCO2"></span>
+            <br>
+            <span id="sens2_Temp_current">...</span>
+            <br><br><br>
+            <span id="sens3_Temp_current">...</span>
         </div>
     </div>
 </fieldset>
-<fieldset id="buttons-fieldset">
-        <form name="statusForm">
-            <input type="button" id="Status" value="Update" onclick="waitWarn(1)" />
-        </form>
-        <br><form name="submitForm">
-            <input type="button" id="Submit" value="Door" onclick="waitWarn(0)" />
-        </form>
-</fieldset>
-<fieldset>
-    <div class="two-column-layout" >
-    <div class="column">
-            <strong><span id="remote1Location"></strong>
-            <br>T:
-            <br>RH:
-            <br>HI:
-            <br>WB T:
-            <label id="remote1IAQ_label">IAQ: </label>
-            <label id="remote1TVOC_label">TVOC: </label>
-            <label id="remote1eCO2_label">eCO2: </label>
-        </div>
-        <div class="column">
-            <br><span id="remote1Temp">...</span>
-            <br><span id="remote1RH">...</span>
-            <br><span id="remote1HI">...</span>
-            <br><span id="remote1WBT">...</span>
-            <span id="remote1IAQ"></span>
-            <span id="remote1TVOC"></span>
-            <span id="remote1eCO2"></span>
-        </div>
-        <div class="column">
-            <strong><span id="remote2Location"></strong>
-            <br>T:
-            <br>RH:
-            <br>HI:
-            <br>WB T:
-            <label id="remote2IAQ_label">IAQ: </label>
-            <label id="remote2TVOC_label">TVOC: </label>
-            <label id="remote2eCO2_label">eCO2: </label>
-        </div>
-        <div class="column">
-            <br><span id="remote2Temp">...</span>
-            <br><span id="remote2RH">...</span>
-            <br><span id="remote2HI">...</span>
-            <br><span id="remote2WBT">...</span>
-            <span id="remote2IAQ"></span>
-            <span id="remote2TVOC"></span>
-            <span id="remote2eCO2"></span>
-        </div>
-    </div>
-    </div>
-</div>
-</fieldset>
-<label id="warnLabel"></label>
 
-<fieldset id="outdoor-fieldset">
-<div class="two-column-layout" id="outdoor-two-cols">
-    <div class="column" id="outdoor-col1">
-        Outdoor
-        <br>T: <span id="ext_temperature">...</span>
-        <br>HI: <span id="ext_heatindex">...</span>
-        <br>RH: <span id="ext_RH">...</span>
-        <br>WBT: <span id="ext_wetbulb">...</span>
-        <br><br>AQI: <span id="ext_aqi_now">...</span>
-        <br>AQI 24h: <span id="ext_aqi_next">...</span>
-        <br><br>UVI: <span id="ext_uvi_now">...</span>
-        <br>UVI 24h: <span id="ext_uvi_next">...</span>
-    </div>
-    <div class="column" id="outdoor-col2">
-        <small>
-        Today: <br><span id="ext_weather">...</span>
-        <br><br>Tomorrow AM: <br><span id="ext_next_weather_am">...</span>:
-            <span id="ext_next_temp_am">...</span>
-        <br><br>Tomorrow PM: <br><span id="ext_next_weather_pm">...</span>:
-            <span id="ext_next_temp_pm">...</span>
-        <br><br>Visibility: <span id="ext_visibility">...</span>
-        <br><br>Dew Point: <span id="ext_dewpoint">...</span>
-        <br><br>P: <span id="ext_pressure">...</span>
-        </small>
-    </div>
-</div>
-</fieldset>
 <fieldset>
-    <small><span id="station"></span>
-    <br><span id="datetime">Time N/A</span></small>
+    Comments: <input type="text" id="userComment">
 </fieldset>
+
 <fieldset>
-    <div class="two-column-layout">
-        <div class="column">
-        CO: <span id="ext_co">...</span>
-        <br>NO2: <span id="ext_no2">...</span>
-        <br>O3: <span id="ext_o3">...</span>
-        <br>CO2: <span id="ext_co2">...</span>
-        <br>CH4: <span id="ext_ch4">...</span>
-        </div>
-    <div class="column">
-        PM2.5: <span id="ext_pm2_5">...</span>
-        <br>PM10: <span id="ext_pm10">...</span>
-        <br>SO2: <span id="ext_so2">...</span>
-        <br>NH3: <span id="ext_nh3">...</span>
-        <br>Dust: <span id="ext_dust">...</span>
-        </div>
+    <label for="refreshRate">Refresh (secs):</label>
+    <input type="number" id="refreshRate" value="30" min="1">
+    
+    <button id="toggleButton" class="stopped">Start</button>
+    <button id="clearButton">Clear Plot</button>
+    <div style="width: 100%; text-align: center;">
+    <button id="zoomButton">Toggle Pan/Zoom</button>
+    <button id="resetZoomButton">Reset Zoom</button>
     </div>
+    <div style="width: 100%; text-align: center;">
+    <button id="savePngButton">Save Plot as PNG</button>
+    <button id="saveCsvButton">Save Data as CSV</button>
+    </div>
+    
+    <div style="width: 100%; text-align: center;">
+    <input type="checkbox" id="submitMongo-checkbox" checked>Save to Remote Server
+    </div>
+    </fieldset>
+<fieldset class="checkbox-group">
+    <label>
+        <input type="checkbox" class="data-checkbox" data-key="sens1_Temp" data-color="red" checked>
+        Sensor 1 Temp
+    </label>
+    <label>
+        <input type="checkbox" class="data-checkbox" data-key="sens2_Temp" data-color="green" checked>
+        Sensor 2 Temp
+    </label>
+    <label>
+        <input type="checkbox" class="data-checkbox" data-key="sens1_WBT" data-color="purple" checked>
+        Sensor 1 WBT
+    </label>
+    <label>
+        <input type="checkbox" class="data-checkbox" data-key="sens1_RH" data-color="blue">
+        Sensor 1 RH
+    </label>
+    <label>
+        <input type="checkbox" class="data-checkbox" data-key="sens1_HI" data-color="blue">
+        Sensor 1 HI
+    </label>
+    <label>
+        <input type="checkbox" class="data-checkbox" data-key="sens3_Temp" data-color="brown">
+        Sensor 3 Temp
+    </label>
 </fieldset>
+
+<button id="simpleUIBtn">Simple UI</button>
 
 <small><small>Device IP: <span id="ip_address">N/A</span></small></small>
 <small><small>Version: <span id="version">N/A</span></small></small>
 
-<br><button id="simpleUIBtn">Simple UI</button>
+<script type="text/javascript">
+//////////////////////////////////////////////
+// Global definitions
+//////////////////////////////////////////////
+let sensorChart;
+let isCollecting = false;
+let hoveredDataIndex = -1;
 
+// Timeout variables to fix promise pile-up
+let pollingTimer = null;
+
+// DOM Element Cache
+const domCache = {};
+
+//////////////////////////////////////////////
+// This object will store ALL data points
+//////////////////////////////////////////////
+const chartDataStore = {
+    labels: [], 
+    isoLabels: [],  
+    sens1_Temp: [],
+    sens1_RH: [],
+    sens1_HI: [],
+    sens1_WBT: [],
+    sens2_Temp: [],
+    sens2_RH: [],
+    sens3_Temp: [],
+    sens3_RH: [],
+    userComments: []
+};
+
+function getCurrentDateTimeUTC(UTC) {
+    const dateObject = new Date(Math.round(UTC / 1e6));
+    return dateObject.toLocaleString();
+}
+
+function getWebBulbTemp(temp, rh, type) {
+    if (type === 'sensor') {
+        const T = parseFloat(temp);
+        const RH = parseFloat(rh);
+        if (isNaN(T) || isNaN(RH)) return "--";
+        
+        let term1 = T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
+        let term2 = Math.atan(T + RH);
+        let term3 = Math.atan(RH - 1.676331);
+        let term4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
+        let term5 = 4.686035;
+        let Tw = term1 + term2 - term3 + term4 - term5;
+        return Tw.toFixed(1);
+    } else {
+        return "--";
+    }
+}
+
+function initChart() {
+    const ctx = document.getElementById('sensorChart').getContext('2d');
+    sensorChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                        displayFormats: { second: 'HH:mm:ss' }
+                    },
+                    title: { display: true, text: 'Time' }
+                },
+                y: {
+                    title: { display: true, text: 'Value' },
+                    beginAtZero: false
+                }
+            },
+            onHover: (event, elements, chart) => {
+                if (elements.length > 0) {
+                    hoveredDataIndex = elements[0].index;
+                } else {
+                    hoveredDataIndex = -1;
+                }
+                chart.draw(); 
+            },
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { enabled: false },
+                zoom: {
+                    zoom: {
+                        wheel: { enabled: false },
+                        pinch: { enabled: false },
+                        drag: {
+                            enabled: true,
+                            borderColor: 'rgba(60, 60, 60, 0.5)',
+                            borderWidth: 1,
+                            backgroundColor: 'rgba(60, 60, 60, 0.2)',
+                            modifierKey: null,
+                        },
+                        mode: 'xy',
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'xy',
+                        modifierKey: null,
+                    }
+                },
+            },
+            animation: false
+        }
+    });
+}
+
+async function fetchData(flag) {
+    try {
+        const url = '/api/status?submitMongo='+flag;
+        console.log(`Requesting data with: `+ url);
+        const response = await fetch(url);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching status:', error);
+        stopInterval();
+        domCache.toggleBtn.textContent = "Start (Error)";
+        domCache.toggleBtn.classList.add("stopped");
+    }
+}
+
+async function updatePlot(flag) {
+    if (!isCollecting  && flag) return;
+
+    if (!domCache.submitMongoCheckbox.checked) {
+        flag = false;
+    }
+        
+    const data = await fetchData(flag);
+    if (!data) return;
+
+    const timestamp = new Date(Math.round(data.UTC / 1e6));
+
+    const datetime = getCurrentDateTimeUTC(data.UTC);
+    const s1_Temp = parseFloat(data.sens1_Temp) || null;
+    const s1_RH = parseFloat(data.sens1_RH) || null;
+    const s1_HI = parseFloat(data.sens1_HI) || null;
+    const s2_Temp = parseFloat(data.sens2_Temp) || null;
+    const s2_RH = parseFloat(data.sens2_RH) || null;
+    const s3_Temp = parseFloat(data.sens3_Temp) || null;
+    const s3_RH = parseFloat(data.sens3_RH) || null;
+    const s1_WBT_string = getWebBulbTemp(data.sens1_Temp, data.sens1_RH, data.sens1_type);
+    const s1_WBT = parseFloat(s1_WBT_string) || null;
+    
+    let userComment = "No comment"; 
+    if (domCache.userComment && domCache.userComment.value) {
+        userComment = domCache.userComment.value.trim();
+        if (userComment === "") userComment = "No comment";
+    }
+            
+    // Update Cached DOM
+    domCache.deviceName.textContent = data.device_name;
+    domCache.datetimeCurrent.textContent = datetime;
+    domCache.sens1Temp.textContent = data.sens1_Temp + " \u00B0C";
+    domCache.sens1Temp.style.color = (data.sens1_type != "sensor") ? "red" : "#00008B";
+    domCache.sens1HI.textContent = data.sens1_HI + " \u00B0C";
+    domCache.sens1HI.style.color = (data.sens1_type != "sensor") ? "red" : "#00008B";
+    domCache.sens1RH.textContent = data.sens1_RH + " %";
+    domCache.sens1WBT.textContent = s1_WBT_string + " \u00B0C"; 
+    domCache.sens2Temp.textContent = data.sens2_Temp + " \u00B0C";
+    domCache.sens2Temp.style.color = (data.sens2_type != "sensor") ? "red" : "#00008B";
+    domCache.sens3Temp.textContent = data.sens3_Temp + " \u00B0C";
+    domCache.sens3Temp.style.color = (data.sens3_type != "sensor") ? "red" : "#00008B";
+    domCache.ipAddress.textContent = data.ip;
+    domCache.version.textContent = data.version;
+
+    if (flag) { 
+        chartDataStore.labels.push(timestamp);
+        chartDataStore.isoLabels.push(timestamp.toISOString());
+        chartDataStore.sens1_Temp.push(s1_Temp);
+        chartDataStore.sens1_RH.push(s1_RH);
+        chartDataStore.sens1_HI.push(s1_HI);
+        chartDataStore.sens1_WBT.push(s1_WBT);
+        chartDataStore.sens2_Temp.push(s2_Temp);
+        chartDataStore.sens2_RH.push(s2_RH);
+        chartDataStore.sens3_Temp.push(s3_Temp);
+        chartDataStore.sens3_RH.push(s3_RH);
+        chartDataStore.userComments.push(userComment);
+
+        sensorChart.data.labels.push(timestamp);
+        sensorChart.data.datasets.forEach(dataset => {
+            const key = dataset.label;
+            if (key === 'sens1_Temp') dataset.data.push(s1_Temp);
+            if (key === 'sens1_RH') dataset.data.push(s1_RH);
+            if (key === 'sens1_HI') dataset.data.push(s1_HI);
+            if (key === 'sens1_WBT') dataset.data.push(s1_WBT);
+            if (key === 'sens2_Temp') dataset.data.push(s2_Temp);
+            if (key === 'sens2_RH') dataset.data.push(s2_RH);
+            if (key === 'sens3_Temp') dataset.data.push(s3_Temp);
+            if (key === 'sens3_RH') dataset.data.push(s3_RH);
+        });
+
+        sensorChart.update('none');
+        
+        if (data.isPicoSubmitMongo == "False" && domCache.submitMongoCheckbox.checked) {
+            submitData(data);
+        }
+    }
+}
+
+function updateVisibleDatasets() {
+    const checkboxes = document.querySelectorAll('.data-checkbox');
+    const newDatasets = [];
+
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            const key = cb.dataset.key; 
+            const color = cb.dataset.color;
+            
+            newDatasets.push({
+                label: key,
+                data: chartDataStore[key],
+                borderColor: color,
+                backgroundColor: color,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 2
+            });
+        }
+    });
+
+    sensorChart.data.datasets = newDatasets;
+    sensorChart.data.labels = chartDataStore.labels; 
+    sensorChart.update();
+}
+
+async function pollData() {
+    if (!isCollecting) return;
+    
+    const refreshRate = (parseInt(domCache.refreshInput.value, 10) || 30) * 1000;
+
+    await updatePlot(true); 
+
+    if (isCollecting) {
+        pollingTimer = setTimeout(pollData, refreshRate);
+    }
+}
+
+function startInterval() {
+    stopInterval(); 
+    pollData();
+    console.log("Interval started.");
+}
+
+function stopInterval() {
+    if (pollingTimer) {
+        clearTimeout(pollingTimer);
+        pollingTimer = null;
+        console.log("Interval stopped.");
+    }
+}
+
+function clearPlot() {
+    chartDataStore.labels.length = 0;
+    chartDataStore.isoLabels.length = 0;
+    chartDataStore.sens1_Temp.length = 0;
+    chartDataStore.sens1_RH.length = 0;
+    chartDataStore.sens1_HI.length = 0;
+    chartDataStore.sens1_WBT.length = 0;
+    chartDataStore.sens2_Temp.length = 0;
+    chartDataStore.sens2_RH.length = 0;
+    chartDataStore.sens3_Temp.length = 0;
+    chartDataStore.sens3_RH.length = 0;
+
+    sensorChart.data.labels.length = 0;
+    sensorChart.data.datasets.forEach(dataset => {
+        dataset.data.length = 0;
+    });
+
+    sensorChart.update();
+    console.log("Plot cleared.");
+}
+
+function exportToPng() {
+    const link = document.createElement('a');
+    sensorChart.options.animation = false;
+    sensorChart.options.plugins.title = { display: true, text: 'LabMonitor Sensor Data' };
+    sensorChart.update();
+    sensorChart.options.plugins.backgroundColor = 'white';
+
+    link.href = sensorChart.toBase64Image();
+    link.download = chartDataStore.isoLabels.at(-1)+'_sensor-plot.png';
+    link.click();
+
+    sensorChart.options.plugins.title = { display: false };
+    sensorChart.options.plugins.backgroundColor = null;
+    sensorChart.update();
+}
+
+function exportToCsv() {
+    const headers = ['timestamp', 'sens1_Temp', 'sens2_Temp', 'sens1_RH', 'sens1_WBT', 'sens1_HI', 'sens2_RH', 'sens3_Temp', 'sens3_RH'];
+    let csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n";
+
+    for (let i = 0; i < chartDataStore.isoLabels.length; i++) {
+        const row = [
+            chartDataStore.isoLabels[i],
+            chartDataStore.sens1_Temp[i],
+            chartDataStore.sens2_Temp[i],
+            chartDataStore.sens1_RH[i],
+            chartDataStore.sens1_WBT[i],
+            chartDataStore.sens1_HI[i],
+            chartDataStore.sens2_RH[i],
+            chartDataStore.sens3_Temp[i],
+            chartDataStore.sens3_RH[i]
+        ];
+        csvContent += row.join(',') + "\n";
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', chartDataStore.isoLabels.at(-1)+'_sensor-data.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function toggleZoomMode() {
+    const isPanEnabled = sensorChart.options.plugins.zoom.pan.enabled;
+    sensorChart.options.plugins.zoom.pan.enabled = !isPanEnabled;
+    sensorChart.options.plugins.zoom.zoom.drag.enabled = isPanEnabled;
+    
+    const canvas = document.getElementById('sensorChart');
+    const zoomButton = domCache.zoomBtn;
+    
+    if (sensorChart.options.plugins.zoom.zoom.drag.enabled) {
+        zoomButton.textContent = "Zoom (Click to Pan)";
+        zoomButton.style.backgroundColor = '#006400';
+        zoomButton.style.borderColor = '#006400';
+        canvas.style.cursor = 'crosshair';
+    } else {
+        zoomButton.textContent = "Pan (Click to Zoom)";
+        zoomButton.style.backgroundColor = '#155084';
+        zoomButton.style.borderColor = '#155084';
+        canvas.style.cursor = 'move';
+    }
+    sensorChart.update('none'); 
+}
+
+function resetZoom() {
+    sensorChart.resetZoom();
+}
+
+function cleanAndAugmentData(data) {
+    const cleanData = { ...data };
+    const EXCLUDED_KEYS = ["mongo_url"];
+    EXCLUDED_KEYS.forEach(key => delete cleanData[key]);
+    
+    const comment = domCache.userComment.value.trim();
+    cleanData['user_comment'] = comment ? comment : "";
+    cleanData['client_submission_time'] = Date.now();
+    return cleanData;
+}
+
+async function submitData(data) {
+    const cleanData = cleanAndAugmentData(data);
+    const FLASK_API_PATH = "/LabMonitorDB/api/submit-sensor-data";
+    const FULL_ENDPOINT_URL = data.mongo_url + FLASK_API_PATH;
+            
+    const maxRetries = 3;
+    let success = false;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            const response = await fetch(FULL_ENDPOINT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cleanData)
+            });
+
+            if (response.ok) {
+                success = true;
+                break;
+            } else {
+                if (attempt < maxRetries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                }
+            }
+        } catch (error) {
+            if (attempt < maxRetries - 1) {
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+            }
+        }
+    }
+    if (!success) console.log(`Error: Failed to submit data after ${maxRetries} attempts.`);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Cache DOM Elements
+    domCache.deviceName = document.getElementById("device_name");
+    domCache.datetimeCurrent = document.getElementById("datetime_current");
+    domCache.sens1Temp = document.getElementById("sens1_Temp_current");
+    domCache.sens1HI = document.getElementById("sens1_HI_current");
+    domCache.sens1RH = document.getElementById("sens1_RH_current");
+    domCache.sens1WBT = document.getElementById("sens1_WBT_current");
+    domCache.sens2Temp = document.getElementById("sens2_Temp_current");
+    domCache.sens3Temp = document.getElementById("sens3_Temp_current");
+    domCache.toggleBtn = document.getElementById('toggleButton');
+    domCache.clearBtn = document.getElementById('clearButton');
+    domCache.refreshInput = document.getElementById('refreshRate');
+    domCache.userComment = document.getElementById('userComment');
+    domCache.pngBtn = document.getElementById('savePngButton');
+    domCache.csvBtn = document.getElementById('saveCsvButton');
+    domCache.sUIBtn = document.getElementById('simpleUIBtn');
+    domCache.zoomBtn = document.getElementById('zoomButton');
+    domCache.resetZoomBtn = document.getElementById('resetZoomButton');
+    domCache.ipAddress = document.getElementById('ip_address');
+    domCache.version = document.getElementById('version');
+    domCache.submitMongoCheckbox = document.getElementById('submitMongo-checkbox');
+    const checkboxes = document.querySelectorAll('.data-checkbox');
+
+    initChart();
+    updatePlot(false);
+    updateVisibleDatasets();
+    toggleZoomMode();
+
+    // Event Listeners
+    domCache.toggleBtn.addEventListener('click', () => {
+        isCollecting = !isCollecting;
+        if (isCollecting) {
+            domCache.toggleBtn.textContent = 'Stop';
+            domCache.toggleBtn.classList.remove('stopped');
+            startInterval();
+        } else {
+            domCache.toggleBtn.textContent = 'Start';
+            domCache.toggleBtn.classList.add('stopped');
+            stopInterval();
+        }
+    });
+
+    domCache.clearBtn.addEventListener('click', clearPlot);
+    domCache.zoomBtn.addEventListener('click', toggleZoomMode);
+    domCache.resetZoomBtn.addEventListener('click', resetZoom);
+    
+    domCache.refreshInput.addEventListener('change', () => {
+        if (isCollecting) startInterval();
+    });
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateVisibleDatasets);
+    });
+    
+    domCache.pngBtn.addEventListener('click', exportToPng);
+    domCache.csvBtn.addEventListener('click', exportToCsv);
+    domCache.sUIBtn.addEventListener('click', function() {
+        window.location.href = '/simple.html';
+    });
+});
+
+const FixedInfoPlugin = {
+    id: 'fixedInfoDisplay',
+    afterDraw(chart, args, options) {
+        if (hoveredDataIndex === -1) return; 
+
+        const ctx = chart.ctx;
+        const { chartArea, width, height } = chart;
+        
+        const index = hoveredDataIndex;
+        const dateLabel = chartDataStore.labels[index]?.toLocaleDateString() || "N/A";
+        const timeLabel = chartDataStore.labels[index]?.toLocaleTimeString() || "N/A";
+        const temp1 = chartDataStore.sens1_Temp[index];
+        const HI1 = chartDataStore.sens1_HI[index];
+        const wbt1 = chartDataStore.sens1_WBT[index];
+        const rh1 = chartDataStore.sens1_RH[index];
+        const temp2 = chartDataStore.sens2_Temp[index];
+        const temp3 = chartDataStore.sens3_Temp[index];
+        const comment = (chartDataStore.userComments[index] || "").trim();
+
+        let lines = [
+            `Date: ${dateLabel}`,
+            `Time: ${timeLabel}`,
+            `S1 Temp: ${temp1 !== null ? temp1 + ' \u00B0C' : '--'}`,
+            `S2 Temp: ${temp2 !== null ? temp2 + ' \u00B0C' : '--'}`,
+            `S1 RH: ${rh1 !== null ? rh1 + ' %' : '--'}`,
+            `S1 WBT: ${wbt1 !== null ? wbt1 + ' \u00B0C' : '--'}`,
+            `S3 Temp: ${temp3 !== null ? temp3 + ' \u00B0C' : '--'}`,
+        ];
+        
+        if (comment.length > 0 && comment.toUpperCase() !== "NO COMMENT") {
+            lines.push(`Comment: "${comment}"`);
+        }
+
+        const lineHeight = 18;
+        const padding = 10;
+        const boxWidth = 250;
+        const boxHeight = (lines.length * lineHeight) + (padding * 2);
+        
+        const x = chartArea.left;
+        const y = chartArea.bottom - boxHeight;
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fillRect(x, y, boxWidth, boxHeight);
+        ctx.strokeStyle = '#333';
+        ctx.strokeRect(x, y, boxWidth, boxHeight);
+
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'left';
+        
+        lines.forEach((line, i) => {
+            ctx.fillText(
+                line, 
+                x + padding, 
+                y + padding + (i * lineHeight) + 14 
+            );
+        });
+    }
+};
+
+Chart.register(FixedInfoPlugin);
+</script>
 </body>
 </html>
