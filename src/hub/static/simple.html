@@ -110,8 +110,29 @@ async function waitWarn(a) {
     }
     document.getElementById("Submit").disabled = false;
 }
+
+//////////////////////////////////////////////
+// Ger Local Data from Pico
+//////////////////////////////////////////////
+async function fetchData(dev) {
+    try {
+        const response = await fetch("/api/status?device_id=loc");
+        const data = await response.json();
+        return data;
+        
+    } catch (error) {
+        console.error('Error fetching status:', error);
+    }
+}
+async function getVersion() {
+    const data = await fetchData();
+    document.getElementById("version").textContent = data.version;
+    document.getElementById("ip_address").textContent = data.ip;
+    }
+
 //document.addEventListener('DOMContentLoaded', updateStatus);
 document.addEventListener('DOMContentLoaded', () => {
+    getVersion();
     const fullUIBtn = document.getElementById('fullUIBtn');
     fullUIBtn.addEventListener('click', function() {
         window.location.href = '/';
