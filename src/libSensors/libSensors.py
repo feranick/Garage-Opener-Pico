@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.12.15.1
+# * v2025.04.27.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2025.12.15.1"
+libSensors_version = "2026.04.27.1"
 
 import time
 import os
@@ -184,12 +184,12 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': "--",
                 'pressure': "--",
-                'aqi': '--',
-                'IAQ': '--',
-                'TVOC': '--',
-                'eCO2': '--',
-                'HI': '--',
-                'type': 'sensor',
+                'aqi': "--",
+                'IAQ': "--",
+                'TVOC': "--",
+                'eCO2': "--",
+                'HI': "--",
+                'type': "sensor",
                 'libSensors_version': self.version}
                 
     # Temperature correction for MAX31865
@@ -223,11 +223,11 @@ class SensorDevices:
         return {'temperature': f"{round(t_envSensor,1)}",
                 'RH': f"{round(rh_envSensor, 1)}",
                 'pressure': f"{p_envSensor}",
-                'IAQ': '--',
-                'TVOC': '--',
-                'eCO2': '--',
+                'IAQ': "--",
+                'TVOC': "--",
+                'eCO2': "--",
                 'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
-                'type': 'sensor',
+                'type': "sensor",
                 'libSensors_version': self.version}
                 
     # Temperature correction for BME280
@@ -276,10 +276,10 @@ class SensorDevices:
                 'pressure': f"{p_envSensor}",
                 'gas': f"{gas_envSensor}",
                 'IAQ': f"{aqi_envSensor}",
-                'TVOC': '--',
-                'eCO2': '--',
+                'TVOC': "--",
+                'eCO2': "--",
                 'HI': f"{self.calctHI(t_envSensor,rh_envSensor)}",
-                'type': 'sensor',
+                'type': "sensor",
                 'libSensors_version': self.version}
                 
     # Temperature correction for BME680
@@ -334,23 +334,23 @@ class SensorDevices:
             print(f"{envSensor_name} not initialized. Using CPU temp with estimated offset.")
             if self.numTimes > 1 and self.avDeltaT != 0 :
                 return {'temperature': f"{round(t_cpu - self.avDeltaT, 1)}",
-                        'RH': '--',
-                        'pressure': '--',
-                        'IAQ': '--',
-                        'TVOC': '--',
-                        'eCO2': '--',
-                        'HI': '--',
-                        'type': 'CPU adj.',
+                        'RH': "--",
+                        'pressure': "--",
+                        'IAQ': "--",
+                        'TVOC': "--",
+                        'eCO2': "--",
+                        'HI': "--",
+                        'type': "CPU adj.",
                         'libSensors_version': version}
             else:
                 return {'temperature': f"{round(t_cpu, 1)} ",
-                        'RH': '--',
-                        'pressure': '--',
-                        'IAQ': '--',
-                        'TVOC': '--',
-                        'eCO2': '--',
-                        'HI': '--',
-                        'type': 'CPU raw',
+                        'RH': "--",
+                        'pressure': "--",
+                        'IAQ': "--",
+                        'TVOC': "--",
+                        'eCO2': "--",
+                        'HI': "--",
+                        'type': "CPU raw",
                         'libSensors_version': self.version}
         try:
             envSensorData = self.getSensorData(envSensor, envSensor_name, correct_temp)
@@ -366,13 +366,13 @@ class SensorDevices:
             print(f"{envSensor_name} not available. Av CPU/MCP T diff: {self.avDeltaT}")
             time.sleep(0.5)
             return {'temperature': f"{round(t_cpu-self.avDeltaT, 1)}",
-                    'RH': '--',
-                    'pressure': '--',
-                    'IAQ': '--',
-                    'TVOC': '--',
-                    'eCO2': '--',
-                    'HI': '--',
-                    'type': 'CPU adj',
+                    'RH': "--",
+                    'pressure': "--",
+                    'IAQ': "--",
+                    'TVOC': "--",
+                    'eCO2': "--",
+                    'HI': "--",
+                    'type': "CPU adj",
                     'libSensors_version': self.version}
 
     def getSensorData(self, envSensor, envSensor_name, correct_temp):
