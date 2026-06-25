@@ -1,10 +1,10 @@
 # **********************************************
 # * libSensors - Rasperry Pico W
-# * v2025.04.27.1
+# * v2025.06.24.1
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2026.04.27.1"
+libSensors_version = "2026.06.24.1"
 
 import time
 import os
@@ -178,7 +178,18 @@ class SensorDevices:
         return envSensor
         
     def getEnvDataMAX31865(self, envSensor, correct_temp):
+        fault = envSensor.fault
+        if any(fault):
+            print(f"MAX31865 fault detected: {fault}")
+            envSensor.clear_faults()
+            raise RuntimeError("MAX31865 fault")   # routes to your CPU-adj fallback
+
         t_envSensor = float(envSensor.temperature)
+
+        # Reject physically impossible readings (open/short -> ~ -242 C)
+        if t_envSensor < -50 or t_envSensor > 200:
+            raise RuntimeError(f"MAX31865 out-of-range: {t_envSensor}")
+            
         if correct_temp.lower() == 'true':
             t_envSensor = self.correct_tempMAX31865(t_envSensor)
         return {'temperature': f"{round(t_envSensor,1)}",
