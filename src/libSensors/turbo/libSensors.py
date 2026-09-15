@@ -1,13 +1,13 @@
 # **********************************************
 # * libSensors - Rasperry Pico W / 2W
-# * v2025.09.15.1
+# * v2025.09.15.2
 # * With Turbo.native support
 # * build mpy: mpy-cross -march=armv6m libSensors.py (RPI2040)
 # * build mpy: mpy-cross -march=armv7emsp libSensors.py (RPI2355)
 # * By: Nicola Ferralis <feranick@hotmail.com>
 # **********************************************
 
-libSensors_version = "2026.09.15.1"
+libSensors_version = "2026.09.15.2"
 
 import time
 import os
@@ -17,7 +17,6 @@ import digitalio
 import microcontroller
 import math
 import micropython
-#from turbo import turbo
 
 ############################
 # Sensors
@@ -210,7 +209,9 @@ class SensorDevices:
                 'libSensors_version': self.version}
                 
     # Temperature correction for MAX31865
-    def correct_tempMAX31865(self, mt):
+    
+    @micropython.native
+    def correct_tempMAX31865(self, mt: float):
         M = 1.000365055
         B = -2.326256018
         
@@ -248,7 +249,8 @@ class SensorDevices:
                 'libSensors_version': self.version}
                 
     # Temperature correction for BME280
-    def correct_tempBME280(self, mt, mh):
+    @micropython.native
+    def correct_tempBME280(self, mt: float, mh: float):
         C_INTERCEPT     = -22.378940
         C_MT            = 3.497112
         C_MH            = -0.267584
@@ -300,7 +302,8 @@ class SensorDevices:
                 'libSensors_version': self.version}
                 
     # Temperature correction for BME680
-    def correct_tempBME680(self, mt, mh):
+    @micropython.native
+    def correct_tempBME680(self, mt: float, mh: float):
         C_INTERCEPT     = -27.800990
         C_MT            = 2.686044
         C_MH            = 0.577078
@@ -317,7 +320,7 @@ class SensorDevices:
         return rt_pred
     
     # IAQ estimator for BME680
-    def getIAQBME680(self, RH, R_gas, isShortScale):
+    def getIAQBME680(self, RH: float, R_gas: float, isShortScale: bool):
         
         if isShortScale:
             S_max = 5 # for 1-5 scale
@@ -452,7 +455,8 @@ class SensorDevices:
 ##############################################
 # Math Utilities
 ##############################################
-def log10(x):
+@micropython.native
+def log10(x: float):
     try:
         # for board with math processor (RP2350)
         log10 = math.log10(x)
