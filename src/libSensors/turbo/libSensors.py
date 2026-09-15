@@ -16,7 +16,8 @@ import board
 import digitalio
 import microcontroller
 import math
-from turbo import turbo
+import micropython
+#from turbo import turbo
 
 ############################
 # Sensors
@@ -115,7 +116,7 @@ class SensorDevices:
                 'libSensors_version': libSensors_version}
     
     # Temperature correction for AHT21/ENS160
-    @turbo.native
+    @micropython.native
     def correct_tempENS160_AHT21(self, mt:float):
         M = 0.993859404
         #B = -5.365396883
@@ -410,7 +411,7 @@ class SensorDevices:
     # Sensors: Heat Index
     ##############################################
     # Calculate heat index
-    @turbo.native
+    @micropython.native
     def calctHI(self, t: float, rh: float):
         if t == "--" or rh == "--":
             return "--"
